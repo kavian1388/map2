@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>نقطه و خط | Kavian Games</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --card: #121212;
+            --p1: #2ecc71;
+            /* سبز برای بازیکن ۱ */
+            --p2: #e74c3c;
+            /* قرمز برای بازیکن ۲ / ربات */
+            --line-idle: #222;
+            --dot: #444;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* بخش بازی */
+        .status-bar {
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .score-box {
+            background: var(--card);
+            padding: 10px 20px;
+            border-radius: 15px;
+            border: 1px solid #1a1a1a;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .board-container {
+            padding: 15px;
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid #1a1a1a;
+            position: relative;
+        }
+
+        .grid {
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--dot);
+            border-radius: 50%;
+            position: absolute;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+        }
+
+        .line {
+            position: absolute;
+            background: var(--line-idle);
+            cursor: pointer;
+            z-index: 5;
+            border-radius: 3px;
+            transition: 0.2s;
+        }
+
+        .line.taken.p1 {
+            background: var(--p1);
+            box-shadow: 0 0 10px var(--p1);
+        }
+
+        .line.taken.p2 {
+            background: var(--p2);
+            box-shadow: 0 0 10px var(--p2);
+        }
+
+        .box {
+            position: absolute;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0);
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .box.p1 {
+            background: rgba(46, 204, 113, 0.15);
+            transform: scale(1);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .box.p2 {
+            background: rgba(231, 76, 60, 0.15);
+            transform: scale(1);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .pause-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            width: 45px;
+            height: 45px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pause-bars {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pause-bars span {
+            width: 4px;
+            height: 18px;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .game-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.2s;
+        }
+
+        .menu-card {
+            background: white;
+            width: 85%;
+            max-width: 300px;
+            padding: 25px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            color: #1e293b;
+        }
+
+        .menu-btn {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .menu-btn.primary {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .menu-btn.danger {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ===== پایان بازی (مودال) ===== */
+        .end-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            z-index: 2500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            backdrop-filter: blur(6px);
+        }
+
+        .end-card {
+            width: min(92vw, 360px);
+            background: #121212;
+            color: #fff;
+            padding: 22px;
+            border-radius: 22px;
+            border: 1px solid #1a1a1a;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+        }
+
+        .end-card h2 {
+            margin: 0 0 12px;
+            font-size: 20px;
+        }
+
+        .end-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .end-actions button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 800;
+        }
+
+        .end-actions .primary {
+            background: #fff;
+            color: #111;
+        }
+
+        .end-actions .secondary {
+            background: #222;
+            color: #fff;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="status-bar" id="status">در حال آماده‌سازی...</div>
+
+    <div class="stats">
+        <div class="score-box" id="p1-area"><span id="n1">بازیکن ۱</span>: <span id="s1">0</span></div>
+        <div class="score-box" id="p2-area"><span id="n2">بازیکن ۲</span>: <span id="s2">0</span></div>
+    </div>
+
+    <div class="board-container">
+        <div id="grid" class="grid"></div>
+    </div>
+
+    <button class="pause-btn" id="pauseBtn" aria-label="menu">
+        <div class="pause-bars"><span></span><span></span></div>
+    </button>
+
+    <div id="pauseOverlay" class="game-overlay">
+        <div class="menu-card">
+            <h3>منوی بازی</h3>
+            <button class="menu-btn primary" id="resumeBtn">ادامه بازی</button>
+            <button class="menu-btn danger" id="exitBtn">خروج از بازی</button>
+        </div>
+    </div>
+
+    <div id="exitConfirmOverlay" class="game-overlay">
+        <div class="menu-card">
+            <h3>مطمئنی خارج میشی؟</h3>
+            <p>پیشرفت بازی ذخیره نخواهد شد.</p>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="menu-btn danger" style="flex:1;" id="confirmExitBtn">بله، خارج شو</button>
+                <button class="menu-btn primary" style="flex:1;" id="cancelExitBtn">نه، برگرد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- پایان -->
+    <div id="endOverlay" class="end-overlay">
+        <div class="end-card">
+            <h2 id="resultText">پایان</h2>
+            <div class="end-actions">
+                <button class="primary" id="restartBtn">دوباره</button>
+                <button class="secondary" id="exitBtn2">خروج</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+
+        let ROWS, COLS, SPACING;
+        let turn = 'p1', scores = { p1: 0, p2: 0 }, lines = {}, boxes = [];
+        let gameMode = '2p'; // '1p' | '2p'
+
+        function clampSize(val) {
+            const n = Number(val);
+            return ([3, 5, 7].includes(n)) ? n : 3;
+        }
+
+        function initFromUrl() {
+            const modeParam = (urlParams.get('mode') || '2p').toLowerCase(); // 1p/2p
+            const sizeParam = clampSize(urlParams.get('size') || 3);
+
+            gameMode = (modeParam === '1p') ? '1p' : '2p';
+
+            ROWS = COLS = sizeParam;
+
+            const screenW = window.innerWidth - 60;
+            SPACING = Math.min(screenW / sizeParam, 60);
+
+            // نام‌ها
+            document.getElementById('n1').innerText = gameMode === '1p' ? "شما" : "سبز";
+            document.getElementById('n2').innerText = gameMode === '1p' ? "ربات" : "قرمز";
+
+            renderBoard();
+            updateUI();
+
+            // اگر مود تک‌نفره بود و نوبت ربات افتاد (اینجا از p1 شروع می‌کنیم، پس نه)
+            if (gameMode === '1p' && turn === 'p2') setTimeout(aiMove, 600);
+        }
+
+        function renderBoard() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            grid.style.width = (COLS * SPACING) + 'px';
+            grid.style.height = (ROWS * SPACING) + 'px';
+
+            // reset state
+            turn = 'p1';
+            scores = { p1: 0, p2: 0 };
+            lines = {};
+            boxes = [];
+
+            // dots
+            for (let r = 0; r <= ROWS; r++) {
+                for (let c = 0; c <= COLS; c++) {
+                    const d = document.createElement('div');
+                    d.className = 'dot';
+                    d.style.top = (r * SPACING) + 'px';
+                    d.style.left = (c * SPACING) + 'px';
+                    grid.appendChild(d);
+                }
+            }
+
+            // lines
+            for (let r = 0; r <= ROWS; r++) {
+                for (let c = 0; c < COLS; c++) createLine(r, c, 'h');
+            }
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c <= COLS; c++) createLine(r, c, 'v');
+            }
+
+            // boxes
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    boxes.push({
+                        r, c,
+                        lines: [`h-${r}-${c}`, `h-${r + 1}-${c}`, `v-${r}-${c}`, `v-${r}-${c + 1}`],
+                        owner: null
+                    });
+                }
+            }
+        }
+
+        function createLine(r, c, type) {
+            const id = `${type}-${r}-${c}`;
+            const l = document.createElement('div');
+            l.className = 'line';
+            l.id = id;
+            const thick = 6;
+
+            if (type === 'h') {
+                l.style.width = (SPACING - 4) + 'px';
+                l.style.height = thick + 'px';
+                l.style.top = (r * SPACING - thick / 2) + 'px';
+                l.style.left = (c * SPACING + 2) + 'px';
+            } else {
+                l.style.width = thick + 'px';
+                l.style.height = (SPACING - 4) + 'px';
+                l.style.top = (r * SPACING + 2) + 'px';
+                l.style.left = (c * SPACING - thick / 2) + 'px';
+            }
+
+            l.onclick = () => {
+                if (gameMode === '1p' && turn === 'p2') return;
+                if (!lines[id].taken) makeMove(id);
+            };
+
+            document.getElementById('grid').appendChild(l);
+            lines[id] = { taken: false, el: l };
+        }
+
+        function makeMove(id) {
+            if (!lines[id] || lines[id].taken) return;
+
+            lines[id].taken = true;
+            lines[id].el.classList.add('taken', turn);
+
+            let scored = false;
+            boxes.forEach(b => {
+                if (!b.owner && b.lines.every(lid => lines[lid].taken)) {
+                    b.owner = turn;
+                    scores[turn]++;
+                    scored = true;
+                    drawBox(b);
+                }
+            });
+
+            // پایان؟
+            if (scores.p1 + scores.p2 === ROWS * COLS) {
+                updateUI();
+                setTimeout(endGame, 600);
+                return;
+            }
+
+            if (!scored) {
+                turn = (turn === 'p1' ? 'p2' : 'p1');
+                updateUI();
+                if (gameMode === '1p' && turn === 'p2') setTimeout(aiMove, 600);
+            } else {
+                updateUI();
+                if (gameMode === '1p' && turn === 'p2') setTimeout(aiMove, 600);
+            }
+        }
+
+        function drawBox(b) {
+            const box = document.createElement('div');
+            box.className = `box ${turn}`;
+            box.style.width = (SPACING - 4) + 'px';
+            box.style.height = (SPACING - 4) + 'px';
+            box.style.top = (b.r * SPACING + 2) + 'px';
+            box.style.left = (b.c * SPACING + 2) + 'px';
+            document.getElementById('grid').appendChild(box);
+        }
+
+        function updateUI() {
+            const st = document.getElementById('status');
+            if (gameMode === '1p') {
+                st.innerText = turn === 'p1' ? 'نوبت شماست' : 'ربات در حال فکر...';
+            } else {
+                st.innerText = turn === 'p1' ? 'نوبت بازیکن سبز' : 'نوبت بازیکن قرمز';
+            }
+
+            document.getElementById('s1').innerText = scores.p1;
+            document.getElementById('s2').innerText = scores.p2;
+            document.getElementById('p1-area').style.borderColor = turn === 'p1' ? 'var(--p1)' : '#1a1a1a';
+            document.getElementById('p2-area').style.borderColor = turn === 'p2' ? 'var(--p2)' : '#1a1a1a';
+        }
+
+        function aiMove() {
+            const available = Object.keys(lines).filter(id => !lines[id].taken);
+            if (!available.length) return;
+
+            // 1) بستن خانه
+            for (let b of boxes) {
+                const missing = b.lines.filter(l => !lines[l].taken);
+                if (missing.length === 1) { makeMove(missing[0]); return; }
+            }
+
+            // 2) حرکت امن
+            const safeMoves = available.filter(id => {
+                return !boxes.some(b => b.lines.includes(id) && b.lines.filter(l => lines[l].taken).length === 2);
+            });
+
+            const choice =
+                (safeMoves.length ? safeMoves[Math.floor(Math.random() * safeMoves.length)] : available[Math.floor(Math.random() * available.length)]);
+
+            makeMove(choice);
+        }
+
+        function endGame() {
+            const res = document.getElementById('resultText');
+
+            if (scores.p1 === scores.p2) {
+                res.innerText = "مساوی شد!";
+            } else if (gameMode === '1p') {
+                res.innerText = (scores.p1 > scores.p2) ? "شما پیروز شدید!" : "ربات پیروز شد";
+            } else {
+                res.innerText = (scores.p1 > scores.p2) ? "بازیکن سبز برنده شد!" : "بازیکن قرمز برنده شد!";
+            }
+
+            document.getElementById('endOverlay').style.display = 'flex';
+        }
+
+        /* ===== Pause Menu ===== */
+        function openPauseMenu() {
+            document.getElementById('pauseOverlay').style.display = 'flex';
+        }
+
+        function closePauseMenu() {
+            document.getElementById('pauseOverlay').style.display = 'none';
+        }
+
+        function showExitConfirm() {
+            document.getElementById('pauseOverlay').style.display = 'none';
+            document.getElementById('exitConfirmOverlay').style.display = 'flex';
+        }
+
+        function hideExitConfirm() {
+            document.getElementById('exitConfirmOverlay').style.display = 'none';
+            document.getElementById('pauseOverlay').style.display = 'flex';
+        }
+
+        document.getElementById('pauseBtn').onclick = openPauseMenu;
+        document.getElementById('resumeBtn').onclick = closePauseMenu;
+        document.getElementById('exitBtn').onclick = showExitConfirm;
+        document.getElementById('cancelExitBtn').onclick = hideExitConfirm;
+        document.getElementById('confirmExitBtn').onclick = () => location.href = 'index.html';
+
+        document.getElementById('restartBtn').onclick = () => {
+            document.getElementById('endOverlay').style.display = 'none';
+            initFromUrl();
+        };
+        document.getElementById('exitBtn2').onclick = () => location.href = 'index.html';
+
+        // جلوگیری از زوم شدن در موبایل هنگام کلیک سریع
+        document.addEventListener('touchstart', function (event) {
+            if (event.touches.length > 1) event.preventDefault();
+        }, { passive: false });
+
+        // شروع از روی URL
+        initFromUrl();
+    </script>
+</body>
+
+</html>

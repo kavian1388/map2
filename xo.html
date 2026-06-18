@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>دوز</title>
+    <style>
+        :root {
+            --bg: #0f1115;
+            --panel: #171a21;
+            --line: #e9edf3;
+            --x1: #7fd0ff;
+            --x2: #3d8dff;
+            --o1: #ff9a9a;
+            --o2: #ff5353;
+            --text: #f4f6f8;
+            --shadow: 0 20px 60px rgba(0, 0, 0, .42);
+            --win: #7cff9a;
+            --overlay: rgba(8, 10, 14, .68);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top, #1a1d26, #0b0d12 65%);
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .app {
+            width: min(94vw, 560px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 12px;
+        }
+
+        .screen {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow);
+            background: linear-gradient(180deg, #232733, #11141a);
+        }
+
+        .gameWrap,
+        .winModal {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gameWrap {
+            padding: 12px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .board {
+            width: 100%;
+            aspect-ratio: 1/1;
+            position: relative;
+            display: grid;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, .02);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+            gap: 0;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .board::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: .96;
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+        }
+
+        .cell {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            cursor: pointer;
+            transition: background .15s ease;
+            border: none;
+            background: transparent;
+            padding: 0;
+            border: 1px solid rgba(233, 237, 243, 0.35);
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .mark {
+            position: relative;
+            width: 66%;
+            height: 66%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(.6);
+            animation: pop .18s ease forwards;
+        }
+
+        .mark.x::before,
+        .mark.x::after {
+            content: "";
+            position: absolute;
+            width: 16%;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--x1), var(--x2));
+            box-shadow: 0 8px 18px rgba(0, 0, 0, .25);
+        }
+
+        .mark.x::before {
+            transform: rotate(45deg);
+        }
+
+        .mark.x::after {
+            transform: rotate(-45deg);
+        }
+
+        .mark.o::before {
+            content: "";
+            position: absolute;
+            inset: 8%;
+            border-radius: 50%;
+            border: 15px solid transparent;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, .10), rgba(0, 0, 0, .02)) padding-box,
+                linear-gradient(135deg, var(--o1), var(--o2)) border-box;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, .25);
+        }
+
+        @keyframes pop {
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .winLine {
+            position: absolute;
+            height: 9px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(124, 255, 154, 0), rgba(124, 255, 154, 1), rgba(124, 255, 154, 0));
+            box-shadow: 0 0 18px rgba(124, 255, 154, .35);
+            transform-origin: center;
+            z-index: 4;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .winLine.animate {
+            opacity: 1;
+            animation: drawWin .42s ease-out forwards;
+        }
+
+        @keyframes drawWin {
+            from {
+                transform: translate(-50%, -50%) rotate(var(--rot)) scaleX(0);
+            }
+
+            to {
+                transform: translate(-50%, -50%) rotate(var(--rot)) scaleX(1);
+            }
+        }
+
+        .winModal {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: var(--overlay);
+            backdrop-filter: blur(7px);
+            z-index: 20;
+            padding: 16px;
+        }
+
+        .winCard {
+            width: min(92%, 360px);
+            border-radius: 22px;
+            padding: 18px 16px;
+            background: rgba(20, 24, 31, .96);
+            box-shadow: var(--shadow);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, .08);
+            animation: modalIn .2s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(.92);
+                opacity: .4;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .winText {
+            font-size: 22px;
+            font-weight: 900;
+            margin-bottom: 14px;
+            color: var(--win);
+        }
+
+        .restartBtn {
+            border: none;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--text);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .06));
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+            transition: transform .15s ease;
+            width: 100%;
+        }
+
+        .restartBtn:active {
+            transform: scale(.97);
+        }
+
+        .winActions {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 440px) {
+            .winText {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="screen">
+            <div class="gameWrap" id="gameWrap">
+                <div class="board" id="board"></div>
+            </div>
+
+            <div class="winModal" id="winModal">
+                <div class="winCard">
+                    <div class="winText" id="winText">برنده شد</div>
+                    <div class="winActions">
+                        <button class="restartBtn" id="restartBtn">دوباره</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const boardEl = document.getElementById('board');
+        const winModal = document.getElementById('winModal');
+        const winText = document.getElementById('winText');
+        const restartBtn = document.getElementById('restartBtn');
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function beep(type = 'x') {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+
+            osc.type = type === 'x' ? 'square' : 'triangle';
+            osc.frequency.setValueAtTime(type === 'x' ? 320 : 220, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(type === 'x' ? 180 : 120, audioCtx.currentTime + 0.08);
+
+            filter.type = 'lowpass';
+            filter.frequency.value = 900;
+
+            gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.08, audioCtx.currentTime + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.13);
+        }
+
+        let size = 3;
+        let winLength = 3;
+        let cells = [];
+        let turn = 'X';
+        let gameOver = false;
+        let mode = 'two'; // 'two' | 'bot'
+        let winLineEl = null;
+
+        function initFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            const modeParam = (urlParams.get('mode') || 'two').toLowerCase();
+            const sizeParam = Number(urlParams.get('size') || 3);
+
+            mode = (modeParam === 'bot') ? 'bot' : 'two';
+            size = ([3, 4, 5].includes(sizeParam)) ? sizeParam : 3;
+
+            // برد همیشه با سه تا (در همه سایزها)
+            winLength = 3;
+
+            resetGame();
+        }
+
+        function resetGame() {
+            cells = Array(size * size).fill('');
+            turn = 'X';
+            gameOver = false;
+            winModal.style.display = 'none';
+            removeWinLine();
+            renderBoard();
+        }
+
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            boardEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            boardEl.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+
+            for (let i = 0; i < size * size; i++) {
+                const cell = document.createElement('button');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+
+                if (cells[i]) {
+                    const mark = document.createElement('div');
+                    mark.className = `mark ${cells[i].toLowerCase()}`;
+                    cell.appendChild(mark);
+                }
+
+                cell.addEventListener('click', () => handleMove(i));
+                boardEl.appendChild(cell);
+            }
+        }
+
+        function handleMove(index) {
+            if (gameOver || cells[index]) return;
+            if (mode === 'bot' && turn === 'O') return;
+
+            placeMove(index, turn);
+            beep(turn.toLowerCase());
+
+            if (checkEnd()) return;
+
+            turn = (turn === 'X') ? 'O' : 'X';
+
+            if (mode === 'bot' && turn === 'O' && !gameOver) {
+                setTimeout(botMove, 450);
+            }
+        }
+
+        function placeMove(index, player) {
+            cells[index] = player;
+            renderBoard();
+            animateCell(index);
+        }
+
+        function animateCell(index) {
+            const mark = boardEl.querySelector(`.cell[data-index="${index}"] .mark`);
+            if (mark) {
+                mark.style.transform = 'scale(.6)';
+                requestAnimationFrame(() => {
+                    mark.style.transition = 'transform .18s ease';
+                    mark.style.transform = 'scale(1)';
+                });
+            }
+        }
+
+        function getWinningLines(n, k) {
+            const lines = [];
+
+            // rows
+            for (let r = 0; r < n; r++) {
+                for (let c = 0; c <= n - k; c++) {
+                    const line = [];
+                    for (let i = 0; i < k; i++) line.push(r * n + (c + i));
+                    lines.push(line);
+                }
+            }
+            // cols
+            for (let c = 0; c < n; c++) {
+                for (let r = 0; r <= n - k; r++) {
+                    const line = [];
+                    for (let i = 0; i < k; i++) line.push((r + i) * n + c);
+                    lines.push(line);
+                }
+            }
+            // diag \
+            for (let r = 0; r <= n - k; r++) {
+                for (let c = 0; c <= n - k; c++) {
+                    const line = [];
+                    for (let i = 0; i < k; i++) line.push((r + i) * n + (c + i));
+                    lines.push(line);
+                }
+            }
+            // diag /
+            for (let r = 0; r <= n - k; r++) {
+                for (let c = k - 1; c < n; c++) {
+                    const line = [];
+                    for (let i = 0; i < k; i++) line.push((r + i) * n + (c - i));
+                    lines.push(line);
+                }
+            }
+
+            return lines;
+        }
+
+        function checkWinner(player) {
+            const wins = getWinningLines(size, winLength);
+            for (const line of wins) {
+                if (line.every(i => cells[i] === player)) return line;
+            }
+            return null;
+        }
+
+        function checkWinnerOnArray(arr, player) {
+            const wins = getWinningLines(size, winLength);
+            return wins.some(line => line.every(i => arr[i] === player));
+        }
+
+        function checkEnd() {
+            const line = checkWinner(turn);
+            if (line) {
+                gameOver = true;
+                drawWinLine(line);
+                showWin(turn);
+                return true;
+            }
+
+            if (cells.every(Boolean)) {
+                gameOver = true;
+                showWin('draw');
+                return true;
+            }
+            return false;
+        }
+
+        function showWin(winner) {
+            winModal.style.display = 'flex';
+            if (winner === 'X') winText.textContent = 'ضرب برنده شد';
+            else if (winner === 'O') winText.textContent = 'دایره برنده شد';
+            else winText.textContent = 'بازی مساوی شد';
+        }
+
+        function drawWinLine(line) {
+            removeWinLine();
+
+            const firstCell = boardEl.querySelector(`.cell[data-index="${line[0]}"]`);
+            const lastCell = boardEl.querySelector(`.cell[data-index="${line[line.length - 1]}"]`);
+            if (!firstCell || !lastCell) return;
+
+            const rect1 = firstCell.getBoundingClientRect();
+            const rect2 = lastCell.getBoundingClientRect();
+            const boardRect = boardEl.getBoundingClientRect();
+
+            const x1 = rect1.left - boardRect.left + rect1.width / 2;
+            const y1 = rect1.top - boardRect.top + rect1.height / 2;
+            const x2 = rect2.left - boardRect.left + rect2.width / 2;
+            const y2 = rect2.top - boardRect.top + rect2.height / 2;
+
+            const length = Math.hypot(x2 - x1, y2 - y1);
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+            winLineEl = document.createElement('div');
+            winLineEl.className = 'winLine';
+            winLineEl.style.width = `${length}px`;
+            winLineEl.style.left = `${x1}px`;
+            winLineEl.style.top = `${y1}px`;
+            winLineEl.style.setProperty('--rot', `${angle}deg`);
+            winLineEl.style.transform = `translate(-50%, -50%) rotate(${angle}deg) scaleX(0)`;
+            boardEl.appendChild(winLineEl);
+
+            requestAnimationFrame(() => {
+                winLineEl.classList.add('animate');
+                winLineEl.style.transform = `translate(-50%, -50%) rotate(${angle}deg) scaleX(1)`;
+            });
+        }
+
+        function removeWinLine() {
+            if (winLineEl && winLineEl.parentNode) winLineEl.parentNode.removeChild(winLineEl);
+            winLineEl = null;
+        }
+
+        function findBestMove(player) {
+            const empty = cells.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+            for (const i of empty) {
+                const test = cells.slice();
+                test[i] = player;
+                if (checkWinnerOnArray(test, player)) return i;
+            }
+            return null;
+        }
+
+        function botMove() {
+            if (gameOver || turn !== 'O') return;
+
+            const empty = cells.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+
+            let move = findBestMove('O');
+            if (move === null) move = findBestMove('X');
+            if (move === null) move = empty[Math.floor(Math.random() * empty.length)];
+
+            placeMove(move, 'O');
+            beep('o');
+
+            if (checkEnd()) return;
+            turn = 'X';
+        }
+
+        restartBtn.addEventListener('click', resetGame);
+
+        initFromUrl();
+    </script>
+</body>
+
+</html>

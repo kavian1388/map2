@@ -1,0 +1,1500 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>منج</title>
+    <style>
+        :root {
+            --glass: rgba(16, 22, 36, .62);
+            --stroke: rgba(255, 255, 255, .12);
+            --text: #eef3ff;
+            --muted: rgba(238, 243, 255, .70);
+
+            --red: #ff4d5e;
+            --green: #34d399;
+            --yellow: #fbbf24;
+            --blue: #60a5fa;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background:
+                radial-gradient(1200px 900px at 70% 10%, rgba(125, 211, 252, .10), transparent 55%),
+                radial-gradient(900px 700px at 15% 15%, rgba(96, 165, 250, .09), transparent 55%),
+                radial-gradient(900px 900px at 15% 90%, rgba(52, 211, 153, .08), transparent 60%),
+                linear-gradient(180deg, #050713, #070b14 45%, #050713);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .stage {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 10px;
+            padding:
+                max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+        }
+
+        /* ===== منوی چوبی بالا ===== */
+        .topMenu {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+
+            /* FIX: قبلاً pointer-events:none بود و کلیک را می‌کشت */
+            pointer-events: auto;
+
+            /* FIX: لایه‌بندی مطمئن بالای صفحه */
+            position: relative;
+            z-index: 50;
+
+            padding: 0 2px;
+            background:
+                radial-gradient(1200px 260px at 50% -10%, rgba(255, 255, 255, .35), transparent 60%),
+                radial-gradient(900px 240px at 30% 0%, rgba(255, 255, 255, .14), transparent 62%),
+                repeating-linear-gradient(90deg,
+                    rgba(92, 62, 28, .06) 0px,
+                    rgba(92, 62, 28, .03) 10px,
+                    rgba(255, 255, 255, 0) 26px,
+                    rgba(92, 62, 28, .04) 44px,
+                    rgba(255, 255, 255, 0) 62px),
+                repeating-linear-gradient(12deg,
+                    rgba(92, 62, 28, .04) 0px,
+                    rgba(255, 255, 255, 0) 18px,
+                    rgba(92, 62, 28, .03) 34px,
+                    rgba(255, 255, 255, 0) 52px),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.10'/%3E%3C/svg%3E"),
+                linear-gradient(180deg, #ecd8be, #d8bb95);
+            background-blend-mode: screen, screen, multiply, multiply, overlay, normal;
+            border-bottom: 1px solid rgba(70, 52, 32, .22);
+            box-shadow: 0 12px 28px rgba(32, 26, 19, .12);
+        }
+
+        .leftBox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 160px;
+            pointer-events: auto;
+        }
+
+        .turnDot {
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, .16);
+            flex: 0 0 auto;
+        }
+
+        .turnText {
+            font-size: 13px;
+            color: rgba(238, 243, 255, .70);
+            white-space: nowrap
+        }
+
+        .turnText b {
+            color: #eef3ff
+        }
+
+        .centerBox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .rightBox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 160px;
+            justify-content: flex-end;
+            pointer-events: auto;
+        }
+
+        .backBtn {
+            cursor: pointer;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            padding: 3px;
+            border: 1px solid rgba(60, 40, 18, .25);
+            background:
+                radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .35), transparent 45%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E"),
+                linear-gradient(180deg, #e9cfa9, #c89d6b);
+            background-blend-mode: screen, overlay, normal;
+            box-shadow: 0 10px 22px rgba(32, 26, 19, .16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .backBtn svg {
+            width: 18px;
+            height: 18px;
+            fill: #4d351b;
+        }
+
+        /* ===== تاس چوبی ===== */
+        .die {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, .10));
+            border: 1px solid rgba(255, 255, 255, .22);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, .35), inset 0 10px 18px rgba(255, 255, 255, .18);
+        }
+
+        .pip {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .95);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+            position: absolute;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+        }
+
+        .pip.on {
+            opacity: 1
+        }
+
+        .pip.tl {
+            left: 26%;
+            top: 26%
+        }
+
+        .pip.tr {
+            left: 74%;
+            top: 26%
+        }
+
+        .pip.bl {
+            left: 26%;
+            top: 74%
+        }
+
+        .pip.br {
+            left: 74%;
+            top: 74%
+        }
+
+        .pip.ml {
+            left: 26%;
+            top: 50%
+        }
+
+        .pip.mr {
+            left: 74%;
+            top: 50%
+        }
+
+        .pip.c {
+            left: 50%;
+            top: 50%
+        }
+
+        .boardWrap {
+            width: 100%;
+            flex: 1 1 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            max-width: 980px;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            display: block;
+            touch-action: manipulation;
+        }
+
+        .rollCenter {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .rollBtn {
+            pointer-events: auto;
+            cursor: pointer;
+            border: none;
+            padding: 14px 18px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(125, 211, 252, .22), rgba(125, 211, 252, .07));
+            border: 1px solid rgba(125, 211, 252, .35);
+            color: var(--text);
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .rollBtn:active {
+            transform: scale(.98)
+        }
+
+        .rollBtn.hidden {
+            display: none
+        }
+
+        /* ===== مودال‌های چوبی ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(20, 16, 12, .58);
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            /* FIX: مطمئن بالاتر از همه */
+            z-index: 5000;
+
+            padding: 18px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* FIX: برای نمایش مودال با کلاس */
+        .overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 380px;
+            border-radius: 16px;
+            border: 1px solid rgba(60, 40, 18, .25);
+            box-shadow: 0 28px 70px rgba(20, 16, 12, .45);
+            overflow: hidden;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, .35), rgba(0, 0, 0, 0)),
+                linear-gradient(180deg, #fbf6ee, #efe2cf);
+        }
+
+        .modalHead {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(60, 40, 18, .16);
+            color: #4d351b;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .modalBody {
+            padding: 14px;
+            text-align: center;
+        }
+
+        .text {
+            font-size: 13px;
+            line-height: 1.85;
+            color: #6a5b4a;
+            white-space: pre-line;
+            margin: 8px 0 12px;
+            text-align: right;
+        }
+
+        .btnRow {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            color: #fff;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, .14), rgba(0, 0, 0, 0)),
+                linear-gradient(180deg, #7a5526, #4f3517);
+            box-shadow: 0 14px 26px rgba(32, 26, 19, .16);
+        }
+
+        .btn.secondary {
+            color: #4d351b;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, .35), rgba(0, 0, 0, 0)),
+                linear-gradient(180deg, #f2e6d6, #e4d2bb);
+            border: 1px solid rgba(60, 40, 18, .18);
+            box-shadow: none;
+        }
+
+        .btn:disabled {
+            opacity: .60;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 420px) {
+            .die {
+                width: 40px;
+                height: 40px;
+                border-radius: 11px;
+            }
+
+            .pip {
+                width: 7px;
+                height: 7px;
+            }
+
+            .rollBtn {
+                padding: 13px 16px;
+                border-radius: 16px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- منوی بالا -->
+    <div class="topMenu">
+        <div class="leftBox">
+            <span class="turnDot" id="turnDot"></span>
+            <div class="turnText" id="turnText">—</div>
+        </div>
+        <div class="centerBox">
+            <div class="die" id="die" aria-label="dice">
+                <span class="pip tl"></span><span class="pip tr"></span>
+                <span class="pip ml"></span><span class="pip mr"></span>
+                <span class="pip c"></span>
+                <span class="pip bl"></span><span class="pip br"></span>
+            </div>
+        </div>
+        <div class="rightBox">
+            <!-- FIX: id اضافه شد و onclick حذف شد (ایمن‌تر) -->
+            <div class="backBtn" id="backBtn" aria-label="بازگشت">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="stage">
+        <div class="boardWrap">
+            <canvas id="board" width="900" height="900"></canvas>
+
+            <div class="rollCenter">
+                <button class="rollBtn hidden" id="rollCenterBtn">تاس بریز</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال خروج -->
+    <div id="exitModal" class="overlay" aria-hidden="true">
+        <div class="modal">
+            <div class="modalHead">
+                <span>خروج</span>
+            </div>
+            <div class="modalBody">
+                <div class="text">می‌خواهید از بازی خارج شوید؟</div>
+                <div class="btnRow">
+                    <!-- این‌ها همان onclick قبلی هستند؛ برای سازگاری window.* ست می‌کنیم -->
+                    <button class="btn secondary" onclick="closeExitModal()">نه</button>
+                    <button class="btn" onclick="exitGame()">بله</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال پایان بازی -->
+    <div id="endOverlay" class="overlay" aria-hidden="true">
+        <div class="modal">
+            <div class="modalHead">
+                <span id="endTitle">پایان بازی</span>
+                <div class="winnerPill" id="winnerPill">—</div>
+            </div>
+            <div class="modalBody">
+                <div style="font-size:13px;color:#6a5b4a">رتبه‌ها</div>
+                <div class="rankList" id="rankList"></div>
+
+                <div class="btnRow">
+                    <button class="btn" id="endRestartBtn">بازی دوباره</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            const $ = (id) => document.getElementById(id);
+
+            const canvas = $("board");
+            const ctx = canvas.getContext("2d");
+            const DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+
+            const COLORS = ["red", "green", "yellow", "blue"];
+            const COLOR_NAME = { red: "قرمز", green: "سبز", yellow: "زرد", blue: "آبی" };
+
+            const CSS = getComputedStyle(document.documentElement);
+            const HEX = (v) => CSS.getPropertyValue(v).trim();
+            const RGBHEX = { red: HEX("--red"), green: HEX("--green"), yellow: HEX("--yellow"), blue: HEX("--blue") };
+
+            function rgba(hex, a) {
+                const h = hex.replace("#", "");
+                const r = parseInt(h.substring(0, 2), 16);
+                const g = parseInt(h.substring(2, 4), 16);
+                const b = parseInt(h.substring(4, 6), 16);
+                return `rgba(${r},${g},${b},${a})`;
+            }
+            function randInt(a, b) { return (Math.floor(Math.random() * (b - a + 1)) + a); }
+
+            /* ===================== صداهای چوبی ===================== */
+            let audioCtx = null, masterGain = null;
+
+            function ensureAudio() {
+                if (!audioCtx) {
+                    const AC = window.AudioContext || window.webkitAudioContext;
+                    if (!AC) return;
+                    audioCtx = new AC();
+                    masterGain = audioCtx.createGain();
+                    masterGain.gain.value = 0.45;
+                    masterGain.connect(audioCtx.destination);
+                }
+                if (audioCtx.state === "suspended") audioCtx.resume().catch(() => { });
+            }
+            window.addEventListener("pointerdown", ensureAudio, { once: true });
+
+            function noiseBuffer(duration) {
+                const sr = audioCtx.sampleRate;
+                const len = Math.max(1, Math.floor(sr * duration));
+                const buf = audioCtx.createBuffer(1, len, sr);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * 0.9;
+                return buf;
+            }
+
+            function softClick({ dur = 0.045, cutoff = 1400, peak = 0.12 }) {
+                if (!audioCtx) return;
+                const t0 = audioCtx.currentTime;
+
+                const src = audioCtx.createBufferSource();
+                src.buffer = noiseBuffer(dur);
+
+                const lp = audioCtx.createBiquadFilter();
+                lp.type = "lowpass";
+                lp.frequency.setValueAtTime(cutoff, t0);
+
+                const g = audioCtx.createGain();
+                g.gain.setValueAtTime(0.0001, t0);
+                g.gain.exponentialRampToValueAtTime(peak, t0 + 0.004);
+                g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+                src.connect(lp);
+                lp.connect(g);
+                g.connect(masterGain);
+
+                src.start(t0);
+                src.stop(t0 + dur + 0.02);
+            }
+
+            function tone({ f = 180, dur = 0.09, type = "sine", peak = 0.035, slideTo = null }) {
+                if (!audioCtx) return;
+                const t0 = audioCtx.currentTime;
+
+                const o = audioCtx.createOscillator();
+                o.type = type;
+                o.frequency.setValueAtTime(f, t0);
+                if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+
+                const g = audioCtx.createGain();
+                g.gain.setValueAtTime(0.0001, t0);
+                g.gain.exponentialRampToValueAtTime(peak, t0 + 0.006);
+                g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+                const lp = audioCtx.createBiquadFilter();
+                lp.type = "lowpass";
+                lp.frequency.setValueAtTime(1600, t0);
+
+                o.connect(lp);
+                lp.connect(g);
+                g.connect(masterGain);
+
+                o.start(t0);
+                o.stop(t0 + dur + 0.03);
+            }
+
+            // حرکت مهره
+            function sfxMoveLand() {
+                ensureAudio(); if (!audioCtx) return;
+                softClick({ dur: 0.040, cutoff: 1300, peak: 0.11 });
+                tone({ f: 165, dur: 0.08, type: "triangle", peak: 0.028, slideTo: 150 });
+            }
+
+            // گرفتن مهره حریف
+            function sfxCaptureGood() {
+                ensureAudio(); if (!audioCtx) return;
+                softClick({ dur: 0.055, cutoff: 1100, peak: 0.16 });
+                tone({ f: 240, dur: 0.08, type: "triangle", peak: 0.032, slideTo: 320 });
+            }
+
+            // گرفتن مهره خودی
+            function sfxCaptureSad() {
+                ensureAudio(); if (!audioCtx) return;
+                softClick({ dur: 0.060, cutoff: 900, peak: 0.14 });
+                tone({ f: 190, dur: 0.12, type: "sine", peak: 0.030, slideTo: 135 });
+            }
+
+            function sfxSelect() {
+                ensureAudio(); if (!audioCtx) return;
+                softClick({ dur: 0.030, cutoff: 1700, peak: 0.07 });
+                tone({ f: 260, dur: 0.05, type: "sine", peak: 0.020, slideTo: 235 });
+            }
+
+            // تاس ریختن: یک تک صدا ساده
+            function sfxDiceRollSimple() {
+                ensureAudio(); if (!audioCtx) return;
+                softClick({ dur: 0.080, cutoff: 1200, peak: 0.15 });
+            }
+
+            const OUTER_LEN = 52;
+            const TOKENS_PER_PLAYER = 4;
+            const START_OFFSET = { red: 0, green: 13, yellow: 26, blue: 39 };
+            const HOME_LEN = 4;
+            const FINISH_PROGRESS = 51 + HOME_LEN; // 55
+            const SAFE_OUTER = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
+            const GRID = 15;
+
+            function buildOuterPath() {
+                const p = [];
+                const add = (r, c) => p.push({ r, c });
+
+                for (let c = 0; c <= 5; c++) add(6, c);
+                for (let r = 5; r >= 0; r--) add(r, 6);
+                add(0, 7); add(0, 8);
+                for (let r = 1; r <= 5; r++) add(r, 8);
+                for (let c = 9; c <= 14; c++) add(6, c);
+                add(7, 14); add(8, 14);
+                for (let c = 13; c >= 9; c--) add(8, c);
+                for (let r = 9; r <= 14; r++) add(r, 8);
+                add(14, 7); add(14, 6);
+                for (let r = 13; r >= 9; r--) add(r, 6);
+                for (let c = 5; c >= 0; c--) add(8, c);
+                add(7, 0);
+
+                while (p.length > 52) p.pop();
+                while (p.length < 52) p.push(p[p.length - 1]);
+                return p;
+            }
+            const OUTER_PATH = buildOuterPath();
+
+            const HOME_LANE = {
+                red: [{ r: 7, c: 1 }, { r: 7, c: 2 }, { r: 7, c: 3 }, { r: 7, c: 4 }],
+                green: [{ r: 1, c: 7 }, { r: 2, c: 7 }, { r: 3, c: 7 }, { r: 4, c: 7 }],
+                yellow: [{ r: 7, c: 13 }, { r: 7, c: 12 }, { r: 7, c: 11 }, { r: 7, c: 10 }],
+                blue: [{ r: 13, c: 7 }, { r: 12, c: 7 }, { r: 11, c: 7 }, { r: 10, c: 7 }],
+            };
+
+            const YARD = {
+                red: [{ r: 11, c: 2 }, { r: 12, c: 3 }, { r: 12, c: 1 }, { r: 13, c: 2 }],
+                green: [{ r: 2, c: 2 }, { r: 1, c: 3 }, { r: 1, c: 1 }, { r: 3, c: 1 }],
+                yellow: [{ r: 2, c: 12 }, { r: 1, c: 11 }, { r: 1, c: 13 }, { r: 3, c: 13 }],
+                blue: [{ r: 12, c: 12 }, { r: 13, c: 11 }, { r: 13, c: 13 }, { r: 11, c: 13 }],
+            };
+
+            const state = {
+                started: false,
+                playerCount: 4,
+                humanColor: "red",
+                players: [],
+                turnIndex: 0,
+                dice: null,
+                canRoll: true,
+                mustMove: false,
+                selectedToken: null,
+                finishOrder: [],
+                lastMoveHadCapture: false,
+                gameLocked: false,
+                hints: { green: new Set(), yellow: new Set(), t0: 0 },
+                mode: null,
+            };
+
+            function currentPlayer() { return state.players[state.turnIndex]; }
+            function outerIndexForColorStart(color) { return START_OFFSET[color]; }
+            function isSafeOuterIndex(outerIndex) { return SAFE_OUTER.has(outerIndex); }
+
+            function requiredFinishers() {
+                if (state.playerCount === 2) return 1;
+                if (state.playerCount === 3) return 2;
+                return 3;
+            }
+            function isGameOver() {
+                return state.finishOrder.length >= requiredFinishers();
+            }
+            function clearHints() {
+                state.hints.green.clear();
+                state.hints.yellow.clear();
+                state.hints.t0 = 0;
+
+                if (state._hintRAF) cancelAnimationFrame(state._hintRAF);
+                state._hintRAF = null;
+            }
+
+            function tokenInPlay(t) {
+                return t.progress >= 0 && !t.finished;
+            }
+
+            function setHintsForRoll(player, dice, moves) {
+                clearHints();
+
+                for (const m of moves) {
+                    if (m.token.progress >= 0) state.hints.yellow.add(m.token.id);
+                }
+
+                if (dice === 6) {
+                    for (const m of moves) {
+                        if (m.token.progress < 0) state.hints.green.add(m.token.id);
+                    }
+                }
+
+                if (state.hints.green.size || state.hints.yellow.size) state.hints.t0 = performance.now();
+                ensureHintAnimation();
+            }
+
+            function ensureHintAnimation() {
+                if (state._hintRAF) return;
+                if (!state.hints.green.size) return;
+                state._hintRAF = requestAnimationFrame(hintTick);
+            }
+
+            function hintTick() {
+                if (!state.started || state.gameLocked || isGameOver() || !state.hints.green.size) {
+                    if (state._hintRAF) cancelAnimationFrame(state._hintRAF);
+                    state._hintRAF = null;
+                    return;
+                }
+                draw();
+                state._hintRAF = requestAnimationFrame(hintTick);
+            }
+
+            function isHomeCellOccupiedBySameColor(color, progress, exceptTokenId) {
+                if (progress < 52 || progress > FINISH_PROGRESS) return false;
+                for (const pl of state.players) {
+                    if (pl.color !== color) continue;
+                    for (const t of pl.tokens) {
+                        if (t.id === exceptTokenId) continue;
+                        if (t.progress === progress) return true;
+                    }
+                }
+                return false;
+            }
+
+            function oppositeColor(c) {
+                return ({ red: "yellow", yellow: "red", green: "blue", blue: "green" })[c];
+            }
+
+            function buildPlayerColors(count, humanColor) {
+                const order = ["red", "green", "yellow", "blue"];
+                if (count === 4) return order.slice();
+                if (count === 2) return [humanColor, oppositeColor(humanColor)];
+                const idx = order.indexOf(humanColor);
+                return [humanColor, order[(idx + 1) % 4], order[(idx + 2) % 4]];
+            }
+
+            function ensureTurnOnActivePlayer() {
+                if (!state.players.length) return;
+                let guard = 0;
+                while (guard++ < 20) {
+                    const p = currentPlayer();
+                    if (p && !p.finished) return;
+                    state.turnIndex = (state.turnIndex + 1) % state.players.length;
+                }
+            }
+
+            function pickRandomColors(count) {
+                const arr = ["red", "green", "yellow", "blue"].slice();
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr.slice(0, count);
+            }
+
+            function initPlayers() {
+                let colors;
+                if (state.mode === "local") colors = pickRandomColors(state.playerCount);
+                else colors = buildPlayerColors(state.playerCount, state.humanColor);
+
+                state.players = colors.map(color => ({
+                    color,
+                    isHuman: (state.mode === "local") ? true : (color === state.humanColor),
+                    finished: false,
+                    tokens: Array.from({ length: TOKENS_PER_PLAYER }, (_, i) => ({
+                        id: `${color}-${i}`,
+                        color,
+                        progress: -1,
+                        yardIndex: i,
+                        selected: false,
+                        finished: false
+                    }))
+                }));
+
+                state.turnIndex = 0;
+                state.dice = null;
+                state.canRoll = true;
+                state.mustMove = false;
+                state.selectedToken = null;
+                state.finishOrder = [];
+                state.lastMoveHadCapture = false;
+                state.gameLocked = false;
+                clearHints();
+
+                hideEndOverlay();
+                ensureTurnOnActivePlayer();
+                updateHUD();
+                draw();
+
+                if (state.mode === "ai" && !currentPlayer().isHuman) setTimeout(aiTurn, 450);
+            }
+
+            function resetToMenu() {
+                state.started = false;
+                state.players = [];
+                state.turnIndex = 0;
+                state.dice = null;
+                state.canRoll = true;
+                state.mustMove = false;
+                state.selectedToken = null;
+                state.finishOrder = [];
+                state.lastMoveHadCapture = false;
+                state.gameLocked = false;
+                clearHints();
+
+                hideEndOverlay();
+
+                applySettingsFromUrl();
+                state.started = true;
+                initPlayers();
+            }
+
+            function getFullRankOrder() {
+                const order = state.finishOrder.slice();
+                for (const pl of state.players) {
+                    if (!order.includes(pl.color)) order.push(pl.color);
+                }
+                return order;
+            }
+
+            function showEndOverlay() {
+                const overlay = $("endOverlay");
+                overlay.classList.add("show");
+                overlay.setAttribute("aria-hidden", "false");
+
+                const full = getFullRankOrder();
+                const winner = full[0];
+                $("winnerPill").textContent = winner ? `برنده: ${COLOR_NAME[winner]}` : "—";
+
+                const list = $("rankList");
+                list.innerHTML = "";
+                for (let i = 0; i < full.length; i++) {
+                    const c = full[i];
+                    const row = document.createElement("div");
+                    row.className = "rankRow";
+                    row.innerHTML = `
+            <div class="rankLeft">
+              <span style="color:rgba(238,243,255,.85);font-weight:900">${i + 1}</span>
+              <span class="rankDot" style="background:${RGBHEX[c]}"></span>
+              <span>${COLOR_NAME[c]}</span>
+            </div>
+          `;
+                    list.appendChild(row);
+                }
+            }
+
+            function hideEndOverlay() {
+                const overlay = $("endOverlay");
+                overlay.classList.remove("show");
+                overlay.setAttribute("aria-hidden", "true");
+            }
+
+            function lockGameIfOver() {
+                if (!state.started) return false;
+                if (!isGameOver()) return false;
+                if (state.gameLocked) return true;
+
+                state.gameLocked = true;
+                state.canRoll = false;
+                state.mustMove = false;
+                state.selectedToken = null;
+                for (const pl of state.players) for (const t of pl.tokens) t.selected = false;
+
+                showEndOverlay();
+                updateHUD();
+                return true;
+            }
+
+            function setTurnUI(player) {
+                const ranks = state.finishOrder.map((c, i) => `${i + 1}) ${COLOR_NAME[c]}`).join(" ، ");
+                $("turnDot").style.background = player ? RGBHEX[player.color] : "rgba(255,255,255,.35)";
+
+                if (isGameOver()) {
+                    $("turnText").innerHTML = `پایان بازی — رتبه‌ها: <b>${ranks || "—"}</b>`;
+                    return;
+                }
+                $("turnText").innerHTML = player
+                    ? `نوبت: <b>${COLOR_NAME[player.color]}${(state.mode === "ai" && player.isHuman) ? " (شما)" : ""}</b>${ranks ? ` — رتبه‌ها: <b>${ranks}</b>` : ""}`
+                    : "—";
+            }
+
+            function renderDie(value) {
+                const die = $("die");
+                const pips = {
+                    tl: die.querySelector(".pip.tl"),
+                    tr: die.querySelector(".pip.tr"),
+                    ml: die.querySelector(".pip.ml"),
+                    mr: die.querySelector(".pip.mr"),
+                    c: die.querySelector(".pip.c"),
+                    bl: die.querySelector(".pip.bl"),
+                    br: die.querySelector(".pip.br"),
+                };
+                Object.values(pips).forEach(p => p.classList.remove("on"));
+                if (value == null) return;
+                const on = (...keys) => keys.forEach(k => pips[k].classList.add("on"));
+                if (value === 1) on("c");
+                if (value === 2) on("tl", "br");
+                if (value === 3) on("tl", "c", "br");
+                if (value === 4) on("tl", "tr", "bl", "br");
+                if (value === 5) on("tl", "tr", "c", "bl", "br");
+                if (value === 6) on("tl", "tr", "ml", "mr", "bl", "br");
+            }
+
+            function updateCenterRollButton() {
+                const p = currentPlayer();
+                const show =
+                    state.started &&
+                    !state.gameLocked &&
+                    !isGameOver() &&
+                    p && p.isHuman &&
+                    state.canRoll &&
+                    !p.finished;
+                $("rollCenterBtn").classList.toggle("hidden", !show);
+            }
+
+            function updateHUD() {
+                const p = currentPlayer();
+                setTurnUI(p);
+                renderDie(state.dice);
+                updateCenterRollButton();
+                lockGameIfOver();
+            }
+
+            function getTokenBoardPos(token) {
+                const color = token.color;
+
+                if (token.progress < 0) {
+                    const spot = YARD[color][token.yardIndex];
+                    return { type: "yard", ...spot };
+                }
+
+                if (token.progress <= 51) {
+                    const outerIndex = (outerIndexForColorStart(color) + token.progress) % OUTER_LEN;
+                    const spot = OUTER_PATH[outerIndex];
+                    return { type: "outer", ...spot, outerIndex };
+                }
+
+                const laneIndex = token.progress - 52;
+                const spot = HOME_LANE[color][laneIndex];
+                return { type: "home", ...spot, laneIndex };
+            }
+
+            function tokenAtOuterIndex(outerIndex) {
+                const arr = [];
+                for (const pl of state.players) {
+                    for (const t of pl.tokens) {
+                        if (t.progress >= 0 && t.progress <= 51 && !t.finished) {
+                            const oi = (outerIndexForColorStart(t.color) + t.progress) % OUTER_LEN;
+                            if (oi === outerIndex) arr.push(t);
+                        }
+                    }
+                }
+                return arr;
+            }
+
+            function legalMoveForToken(player, token, dice) {
+                if (player.finished) return null;
+                if (token.finished) return null;
+
+                if (token.progress < 0) {
+                    if (dice !== 6) return null;
+
+                    const startOuter = outerIndexForColorStart(player.color);
+                    const occ = tokenAtOuterIndex(startOuter);
+                    const opp = occ.filter(t => t.color !== player.color);
+                    if (opp.length >= 2) return null;
+
+                    const capture = [];
+                    if (opp.length === 1 && !isSafeOuterIndex(startOuter)) capture.push(opp[0]);
+                    return { token, toProgress: 0, captureTokens: capture };
+                }
+
+                const to = token.progress + dice;
+                if (to > FINISH_PROGRESS) return null;
+
+                if (to <= 51) {
+                    const destOuter = (outerIndexForColorStart(player.color) + to) % OUTER_LEN;
+                    const occ = tokenAtOuterIndex(destOuter);
+                    const opp = occ.filter(t => t.color !== player.color);
+                    if (opp.length >= 2) return null;
+
+                    const capture = [];
+                    if (opp.length === 1 && !isSafeOuterIndex(destOuter)) capture.push(opp[0]);
+                    return { token, toProgress: to, captureTokens: capture };
+                }
+
+                if (isHomeCellOccupiedBySameColor(player.color, to, token.id)) return null;
+                return { token, toProgress: to, captureTokens: [] };
+            }
+
+            function getLegalMoves(player, dice) {
+                const res = [];
+                for (const t of player.tokens) {
+                    const m = legalMoveForToken(player, t, dice);
+                    if (m) res.push(m);
+                }
+                return res;
+            }
+
+            function maybeFinishPlayer(player) {
+                if (player.finished) return;
+                const allEnteredHome = player.tokens.every(t => t.progress >= 52);
+                if (allEnteredHome) {
+                    player.finished = true;
+                    if (!state.finishOrder.includes(player.color)) state.finishOrder.push(player.color);
+                }
+            }
+
+            function applyMove(move) {
+                if (state.gameLocked) return;
+                clearHints();
+
+                const player = currentPlayer();
+                const token = move.token;
+
+                const captures = move.captureTokens || [];
+                if (captures.length) {
+                    const anyEnemy = captures.some(v => v.color !== player.color);
+                    const anySelf = captures.some(v => v.color === player.color);
+                    if (anyEnemy) sfxCaptureGood();
+                    else if (anySelf) sfxCaptureSad();
+                }
+
+                token.progress = move.toProgress;
+
+                let captured = false;
+                for (const victim of move.captureTokens) {
+                    victim.progress = -1;
+                    victim.finished = false;
+                    victim.selected = false;
+                    captured = true;
+                }
+                state.lastMoveHadCapture = captured;
+
+                if (token.progress === 55) token.finished = true;
+
+                maybeFinishPlayer(player);
+
+                sfxMoveLand();
+
+                if (lockGameIfOver()) {
+                    updateHUD();
+                    draw();
+                    return;
+                }
+
+                const extra = (state.dice === 6 || state.lastMoveHadCapture);
+
+                state.dice = null;
+                state.mustMove = false;
+                state.selectedToken = null;
+                for (const t of player.tokens) t.selected = false;
+
+                if (extra && !player.finished) state.canRoll = true;
+                else endTurn();
+
+                updateHUD();
+                draw();
+
+                if (!state.gameLocked && !currentPlayer().isHuman && state.canRoll) {
+                    setTimeout(aiTurn, 520);
+                }
+            }
+
+            function endTurn() {
+                if (state.gameLocked) return;
+                if (isGameOver()) { lockGameIfOver(); return; }
+
+                let guard = 0;
+                do {
+                    state.turnIndex = (state.turnIndex + 1) % state.players.length;
+                    guard++;
+                } while (guard < 20 && currentPlayer().finished);
+
+                state.canRoll = true;
+                state.mustMove = false;
+                state.selectedToken = null;
+                state.dice = null;
+                state.lastMoveHadCapture = false;
+                clearHints();
+
+                ensureTurnOnActivePlayer();
+                updateHUD();
+                draw();
+            }
+
+            function rollDiceHuman() {
+                const p = currentPlayer();
+                if (state.gameLocked) return;
+                if (!p || p.finished) return;
+                if (!p.isHuman || !state.canRoll) return;
+
+                ensureAudio();
+                sfxDiceRollSimple();
+
+                state.dice = randInt(1, 6);
+                state.canRoll = false;
+                state.lastMoveHadCapture = false;
+
+                updateHUD();
+
+                const moves = getLegalMoves(p, state.dice);
+
+                if (moves.length === 0) {
+                    clearHints();
+                    updateHUD();
+                    draw();
+                    setTimeout(() => {
+                        state.dice = null;
+                        endTurn();
+                        if (!currentPlayer().isHuman) setTimeout(aiTurn, 520);
+                    }, 650);
+                    return;
+                }
+
+                const hasAnyInPlay = p.tokens.some(t => tokenInPlay(t));
+                if (state.dice === 6 && !hasAnyInPlay) {
+                    const yardMove = moves.find(m => m.token.progress < 0);
+                    if (yardMove) {
+                        clearHints();
+                        draw();
+                        setTimeout(() => applyMove(yardMove), 180);
+                        return;
+                    }
+                }
+
+                setHintsForRoll(p, state.dice, moves);
+
+                state.mustMove = true;
+
+                if (moves.length === 1) {
+                    state.selectedToken = moves[0].token;
+                    state.selectedToken.selected = true;
+                }
+
+                updateHUD();
+                draw();
+            }
+
+            function aiTurn() {
+                const p = currentPlayer();
+                if (state.gameLocked) return;
+                if (!p || p.isHuman || p.finished) return;
+                if (!state.canRoll) return;
+
+                ensureAudio();
+                sfxDiceRollSimple();
+
+                state.dice = randInt(1, 6);
+                state.canRoll = false;
+                updateHUD();
+                draw();
+
+                const moves = getLegalMoves(p, state.dice);
+                if (moves.length === 0) {
+                    updateHUD();
+                    draw();
+                    setTimeout(() => {
+                        state.dice = null;
+                        endTurn();
+                        if (!currentPlayer().isHuman) setTimeout(aiTurn, 520);
+                    }, 650);
+                    return;
+                }
+
+                moves.sort((a, b) => scoreMove(b) - scoreMove(a));
+                setTimeout(() => applyMove(moves[0]), 380);
+
+                function scoreMove(m) {
+                    let s = 0;
+                    if (m.captureTokens.length) s += 100;
+                    if (m.toProgress === FINISH_PROGRESS) s += 90;
+                    if (m.token.progress < 0 && m.toProgress === 0) s += 30;
+                    if (m.toProgress >= 52) s += 18;
+                    s += (m.toProgress - Math.max(0, m.token.progress)) * 2;
+                    return s;
+                }
+            }
+
+            // --- Rendering ---
+            function boardPad() { return 12; }
+            function cellSize() {
+                const side = Math.min(canvas.clientWidth, canvas.clientHeight);
+                return (side - boardPad() * 2) / GRID;
+            }
+            function cellCenter(r, c) {
+                const pad = boardPad();
+                const s = cellSize();
+                return { x: pad + c * s + s / 2, y: pad + r * s + s / 2, s };
+            }
+
+            function progressToCell(color, progress, finished = false) {
+                if (finished || progress === FINISH_PROGRESS) return HOME_LANE[color][HOME_LEN - 1];
+                if (progress <= 51) {
+                    const oi = (outerIndexForColorStart(color) + progress) % OUTER_LEN;
+                    return OUTER_PATH[oi];
+                }
+                const laneIndex = progress - 52;
+                return HOME_LANE[color][laneIndex];
+            }
+
+            function draw() {
+                const w = canvas.clientWidth, h = canvas.clientHeight;
+                ctx.clearRect(0, 0, w, h);
+
+                const s = cellSize();
+                const R = s * 0.44;
+
+                for (let i = 0; i < OUTER_PATH.length; i++) {
+                    const { r, c } = OUTER_PATH[i];
+                    const cc = cellCenter(r, c);
+
+                    ctx.beginPath();
+                    ctx.arc(cc.x, cc.y, R, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(255,255,255,.055)";
+                    ctx.fill();
+                    ctx.strokeStyle = "rgba(255,255,255,.10)";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    if (SAFE_OUTER.has(i)) {
+                        ctx.beginPath();
+                        ctx.arc(cc.x, cc.y, R * 0.62, 0, Math.PI * 2);
+                        ctx.fillStyle = "rgba(251,191,36,.10)";
+                        ctx.fill();
+                        ctx.strokeStyle = "rgba(251,191,36,.22)";
+                        ctx.stroke();
+                    }
+                }
+
+                for (const color of COLORS) {
+                    const idx = outerIndexForColorStart(color);
+                    const { r, c } = OUTER_PATH[idx];
+                    const cc = cellCenter(r, c);
+
+                    ctx.beginPath();
+                    ctx.arc(cc.x, cc.y, R, 0, Math.PI * 2);
+                    ctx.fillStyle = rgba(RGBHEX[color], .16);
+                    ctx.fill();
+                    ctx.strokeStyle = rgba(RGBHEX[color], .30);
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+
+                for (const color of COLORS) {
+                    for (const cell of HOME_LANE[color]) {
+                        const cc = cellCenter(cell.r, cell.c);
+                        ctx.beginPath();
+                        ctx.arc(cc.x, cc.y, R, 0, Math.PI * 2);
+                        ctx.fillStyle = rgba(RGBHEX[color], .12);
+                        ctx.fill();
+                        ctx.strokeStyle = "rgba(255,255,255,.12)";
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+
+                for (const pl of state.players) {
+                    for (const t of pl.tokens) drawToken(t);
+                }
+
+                const p = currentPlayer();
+                if (!state.gameLocked && p && p.isHuman && state.selectedToken && state.dice != null && !state.canRoll && !isGameOver()) {
+                    const m = legalMoveForToken(p, state.selectedToken, state.dice);
+                    if (m) {
+                        const dest = progressToCell(p.color, m.toProgress, false);
+                        const cc = cellCenter(dest.r, dest.c);
+                        ctx.beginPath();
+                        ctx.arc(cc.x, cc.y, R * 1.10, 0, Math.PI * 2);
+                        ctx.strokeStyle = "rgba(125,211,252,.80)";
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            function drawToken(token) {
+                const pos = getTokenBoardPos(token);
+                const cc = cellCenter(pos.r, pos.c);
+                const s = cc.s;
+                const r = s * 0.32;
+
+                let ox = 0, oy = 0;
+                if (pos.type === "outer") {
+                    const occ = tokenAtOuterIndex(pos.outerIndex);
+                    const idx = occ.findIndex(t => t.id === token.id);
+                    if (idx >= 0) {
+                        const d = s * 0.16;
+                        const map = [{ x: -d, y: -d }, { x: d, y: -d }, { x: -d, y: d }, { x: d, y: d }];
+                        ox = map[idx % map.length].x;
+                        oy = map[idx % map.length].y;
+                    }
+                }
+
+                const x = cc.x + ox, y = cc.y + oy;
+
+                ctx.beginPath();
+                ctx.arc(x + 1.6, y + 3.2, r * 1.05, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(0,0,0,.28)";
+                ctx.fill();
+
+                const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.20, x, y, r * 1.25);
+                g.addColorStop(0, rgba(RGBHEX[token.color], .94));
+                g.addColorStop(1, "rgba(0,0,0,.18)");
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fillStyle = g;
+                ctx.fill();
+
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(255,255,255,.18)";
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(x, y, r * 0.50, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(255,255,255,.10)";
+                ctx.fill();
+
+                const isGreen = state.hints.green.has(token.id);
+                const isYellow = state.hints.yellow.has(token.id);
+
+                if (isGreen || isYellow) {
+                    const now = performance.now();
+                    const t = state.hints.t0 ? (now - state.hints.t0) : 0;
+
+                    const pulse = isGreen ? (0.9 + 0.18 * Math.sin(t / 120)) : 1.0;
+                    const rr = r * (1.55 * pulse);
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, rr, 0, Math.PI * 2);
+                    ctx.strokeStyle = isGreen ? "rgba(52,211,153,.85)" : "rgba(251,191,36,.85)";
+                    ctx.lineWidth = isGreen ? 3.5 : 3;
+                    ctx.stroke();
+                }
+
+                if (token.selected) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, r * 1.38, 0, Math.PI * 2);
+                    ctx.strokeStyle = "rgba(125,211,252,.85)";
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+            }
+
+            // --- Input / resize ---
+            function resizeCanvas() {
+                const cssW = canvas.clientWidth;
+                const cssH = canvas.clientHeight;
+                canvas.width = Math.floor(cssW * DPR);
+                canvas.height = Math.floor(cssH * DPR);
+                ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+                draw();
+            }
+            window.addEventListener("resize", resizeCanvas);
+
+            function pointerToPoint(ev) {
+                const rect = canvas.getBoundingClientRect();
+                const x = (ev.clientX - rect.left) * (canvas.width / rect.width) / DPR;
+                const y = (ev.clientY - rect.top) * (canvas.height / rect.height) / DPR;
+                return { x, y };
+            }
+
+            function findNearestCell(x, y) {
+                const pad = boardPad();
+                const s = cellSize();
+                const c = Math.floor((x - pad) / s);
+                const r = Math.floor((y - pad) / s);
+                if (r < 0 || c < 0 || r >= GRID || c >= GRID) return null;
+
+                const cc = cellCenter(r, c);
+                const dist = Math.hypot(x - cc.x, y - cc.y);
+                if (dist <= s * 0.48) return { r, c };
+                return null;
+            }
+
+            function findTokenAtCell(r, c) {
+                const all = [];
+                for (const pl of state.players) {
+                    for (const t of pl.tokens) {
+                        const pos = getTokenBoardPos(t);
+                        if (pos.r === r && pos.c === c) all.push(t);
+                    }
+                }
+                const p = currentPlayer();
+                all.sort((a, b) => {
+                    const aa = (p && a.color === p.color) ? 0 : 1;
+                    const bb = (p && b.color === p.color) ? 0 : 1;
+                    return aa - bb;
+                });
+                return all[0] || null;
+            }
+
+            function getQueryParam(name) {
+                const url = new URL(window.location.href);
+                return url.searchParams.get(name);
+            }
+
+            function clampPlayers(x) {
+                const n = Number(x);
+                if (n === 2 || n === 3 || n === 4) return n;
+                return 4;
+            }
+
+            function applySettingsFromUrl() {
+                const m = getQueryParam("mode");
+                state.mode = (m === "multi") ? "local" : "ai";
+
+                state.playerCount = clampPlayers(getQueryParam("players"));
+
+                const c = getQueryParam("color");
+                state.humanColor = (c === "green" || c === "yellow" || c === "blue" || c === "red") ? c : "red";
+            }
+
+            canvas.addEventListener("click", (ev) => {
+                if (!state.started) return;
+                if (state.gameLocked || isGameOver()) return;
+
+                const p = currentPlayer();
+                if (!p || p.finished || !p.isHuman) return;
+                if (state.canRoll) return;
+                if (state.dice == null) return;
+
+                const pt = pointerToPoint(ev);
+                const cell = findNearestCell(pt.x, pt.y);
+                if (!cell) return;
+
+                if (state.selectedToken) {
+                    const m = legalMoveForToken(p, state.selectedToken, state.dice);
+                    if (m) {
+                        const dest = progressToCell(p.color, m.toProgress, false);
+                        if (dest.r === cell.r && dest.c === cell.c) {
+                            applyMove(m);
+                            return;
+                        }
+                    }
+                }
+
+                const clickedToken = findTokenAtCell(cell.r, cell.c);
+                if (clickedToken && clickedToken.color === p.color) {
+                    sfxSelect();
+                    for (const t of p.tokens) t.selected = false;
+                    clickedToken.selected = true;
+                    state.selectedToken = clickedToken;
+                    draw();
+
+                    const m = legalMoveForToken(p, clickedToken, state.dice);
+                    if (m) {
+                        if (state._lastSel === clickedToken.id && (Date.now() - state._lastSelT) < 450) {
+                            applyMove(m);
+                        }
+                        state._lastSel = clickedToken.id;
+                        state._lastSelT = Date.now();
+                    }
+                }
+            });
+
+            /* ===================== FIX: مودال خروج ===================== */
+            const exitModal = $("exitModal");
+            const backBtn = $("backBtn");
+
+            function openExitModal() {
+                exitModal.classList.add("show");
+                exitModal.setAttribute("aria-hidden", "false");
+            }
+
+            function closeExitModal() {
+                exitModal.classList.remove("show");
+                exitModal.setAttribute("aria-hidden", "true");
+            }
+
+            function exitGame() {
+                window.location.href = "index.html";
+            }
+
+            // باز شدن مودال با کلیک روی دکمه برگشت
+            backBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openExitModal();
+            });
+
+            // کلیک روی بک‌گراند overlay => بستن
+            exitModal.addEventListener("click", (e) => {
+                if (e.target === exitModal) closeExitModal();
+            });
+
+            // ESC => بستن
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && exitModal.classList.contains("show")) closeExitModal();
+            });
+
+            // برای اینکه onclick دکمه‌های داخل مودال کار کنه (سازگاری)
+            window.closeExitModal = closeExitModal;
+            window.exitGame = exitGame;
+            /* ===================== /FIX ===================== */
+
+            $("rollCenterBtn").addEventListener("click", rollDiceHuman);
+            $("endRestartBtn").addEventListener("click", () => resetToMenu());
+
+            resizeCanvas();
+            applySettingsFromUrl();
+            state.started = true;
+            initPlayers();
+        })();
+    </script>
+</body>
+
+</html>

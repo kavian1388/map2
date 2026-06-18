@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>شطرنج</title>
+
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+
+    :root {
+      /* پالت رنگی استایل مینیمال داما */
+      --bg-main: #F5EFE6;
+      --bg-card: #FFFFFF;
+      --accent: #1A51A6;
+      --text-main: #111111;
+      --text-muted: #6B7280;
+      --border-color: #D1D5DB;
+
+      /* تنظیمات تخته و حاشیه اعداد/حروف */
+      --wrapperSize: min(96vw, 420px);
+      --coordSpace: 20px; /* فضای دور تخته برای حروف و اعداد */
+      --boardSize: calc(var(--wrapperSize) - (var(--coordSpace) * 2));
+      --cell: calc(var(--boardSize) / 8);
+
+      /* رنگ‌های تخته */
+      --light: #d4cbb8;
+      --dark: #3b3936;
+      --board-border: #1a1a1a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Vazirmatn', Tahoma, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      touch-action: manipulation;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* کانتینر اصلی */
+    .phone-container {
+      width: 100%;
+      max-width: 450px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ===== منوی بالای مینیمال ===== */
+    .topMenu {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: calc(16px + env(safe-area-inset-top)) 24px 16px 24px;
+      background: transparent;
+      z-index: 50;
+      position: relative;
+      gap: 10px;
+    }
+
+    .leftBox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-card);
+      padding: 8px 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border-color);
+      flex: 0 0 auto;
+    }
+
+    .turnDot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid #D1D5DB;
+      transition: all 0.3s ease;
+      background: #ffffff;
+    }
+
+    .turnText {
+      font-size: 15px;
+      color: var(--text-main);
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    .turnText b {
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .centerBox {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .checkBadge {
+      display: none;
+      padding: 8px 16px;
+      border-radius: 16px;
+      border: 1px solid #F87171;
+      background: #FEE2E2;
+      color: #991B1B;
+      font-weight: 800;
+      font-size: 13px;
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .checkBadge.show {
+      display: inline-flex;
+    }
+
+    .checkBadge .red {
+      color: #DC2626;
+      font-weight: 900;
+    }
+
+    .rightBox {
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+    }
+
+    .backBtn {
+      cursor: pointer;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s;
+    }
+
+    .backBtn:active {
+      transform: scale(0.95);
+    }
+
+    .backBtn svg {
+      width: 22px;
+      height: 22px;
+      fill: #374151;
+    }
+
+    /* ===== صفحه بازی تخته شطرنج ===== */
+    .stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      position: relative;
+    }
+
+    /* کانتینر دور تخته برای نمایش حروف و اعداد (قفل شده در برابر کشیدگی) */
+    .board-wrapper {
+      width: var(--wrapperSize);
+      height: var(--wrapperSize);
+      background: var(--board-border);
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      aspect-ratio: 1/1;
+    }
+
+    .board {
+      width: var(--boardSize);
+      height: var(--boardSize);
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      border: 2px solid #b58863;
+      background: #b58863;
+      position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+      flex-shrink: 0;
+      aspect-ratio: 1/1;
+    }
+
+    /* استایل حروف و اعداد دور تخته */
+    .coord {
+      position: absolute;
+      color: var(--light);
+      opacity: 0.8;
+      font-size: clamp(10px, 3vw, 12px);
+      font-weight: bold;
+      font-family: Arial, Helvetica, sans-serif;
+      user-select: none;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .coord.file { width: var(--cell); height: var(--coordSpace); }
+    .coord.file.top { top: 0; }
+    .coord.file.bottom { bottom: 0; }
+
+    .coord.rank { height: var(--cell); width: var(--coordSpace); }
+    .coord.rank.left { left: 0; }
+    .coord.rank.right { right: 0; }
+
+    .square {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      /* این دو خط مانع از برهم خوردن و کشیده شدن گرید در انیمیشن‌ها می‌شود */
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .light {
+      background: var(--light);
+    }
+
+    .dark {
+      background: var(--dark);
+    }
+
+    .piece {
+      font-size: clamp(24px, 8vw, calc(var(--cell) * 0.75));
+      line-height: 1;
+      font-weight: bold;
+      pointer-events: none;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .selected::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 0 3px var(--accent);
+      opacity: 0.8;
+      z-index: 1;
+    }
+
+    .in-check::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 0 3px #EF4444;
+      background: rgba(239, 68, 68, 0.3);
+      z-index: 1;
+    }
+
+    .hint::before,
+    .danger::before {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      z-index: 3;
+    }
+
+    .hint::before {
+      width: 20px;
+      height: 20px;
+      background: var(--accent);
+      opacity: 0.6;
+    }
+
+    .danger::before {
+      width: 24px;
+      height: 24px;
+      background: #EF4444;
+      border: 2px solid white;
+      opacity: 0.85;
+    }
+
+    .fly-piece {
+      position: fixed;
+      z-index: 4000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      will-change: transform, left, top;
+      transition: transform 260ms cubic-bezier(.22, 1, .36, 1);
+      pointer-events: none;
+    }
+
+    /* ===== مودال‌ها ===== */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.2);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 5000;
+      padding: 16px;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      width: 100%;
+      max-width: 400px;
+      border-radius: 24px;
+      box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modalHead {
+      font-size: 20px;
+      font-weight: 800;
+      text-align: center;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .modalBody {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .text {
+      font-size: 15px;
+      color: var(--text-muted);
+      text-align: center;
+      font-weight: 500;
+      white-space: pre-line;
+    }
+
+    .btnRow {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--border-color);
+      margin-top: 8px;
+      padding-top: 16px;
+      gap: 10px;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(26, 81, 166, 0.2);
+      transition: transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn.secondary {
+      background: transparent;
+      color: #4B5563;
+      box-shadow: none;
+      border: 1px solid var(--border-color);
+    }
+
+    .promo-menu {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 6px;
+    }
+
+    .promo-choice {
+      font-size: 34px;
+      background: var(--bg-main);
+      padding: 10px 16px;
+      border-radius: 16px;
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      color: var(--text-main);
+      transition: transform 0.1s;
+    }
+
+    .promo-choice:active { transform: scale(0.95); }
+
+    .closeX {
+      background: var(--bg-main);
+      border: none;
+      font-size: 14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="phone-container">
+    <div class="topMenu">
+      <div class="leftBox">
+        <span class="turnDot" id="turnDot"></span>
+        <div class="turnText" id="turnText">—</div>
+      </div>
+
+      <div class="centerBox">
+        <div class="checkBadge" id="checkBadge">
+          <span class="red">کیش!</span>
+          <span id="checkText" style="margin-right:8px">—</span>
+        </div>
+      </div>
+
+      <div class="rightBox">
+        <div class="backBtn" id="backBtn" aria-label="بازگشت">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="board-wrapper" dir="ltr" id="boardWrapper">
+        <div class="board" id="board"></div>
+      </div>
+    </div>
+
+    <div id="exitModal" class="overlay" aria-hidden="true">
+      <div class="modal">
+        <div class="modalHead">
+          <span>خروج</span>
+        </div>
+        <div class="modalBody">
+          <div class="text">می‌خواهید از بازی خارج شوید؟</div>
+          <div class="btnRow">
+            <button class="btn" onclick="exitGame()">بله، خارج می‌شوم</button>
+            <button class="btn secondary" onclick="closeExitModal()">نه، ادامه می‌دهم</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay show" id="modeOverlay">
+      <div class="modal">
+        <div class="modalHead">
+          <div>انتخاب حالت بازی</div>
+          <button class="closeX" style="visibility:hidden;">✕</button>
+        </div>
+        <div class="modalBody">
+          <div class="btnRow">
+            <button class="btn" id="singleBtn">تک نفره (با ربات)</button>
+            <button class="btn secondary" id="twoBtn">دو نفره</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="modalOverlay" aria-hidden="true">
+      <div class="modal">
+        <div class="modalHead">
+          <div id="modalTitle">پیام</div>
+          <button class="closeX" id="modalClose">✕</button>
+        </div>
+        <div class="modalBody">
+          <div class="text" id="modalText"></div>
+          <div id="modalActions"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const boardEl = document.getElementById('board');
+    // top menu UI
+    const turnDotEl = document.getElementById('turnDot');
+    const turnTextEl = document.getElementById('turnText');
+    const checkBadgeEl = document.getElementById('checkBadge');
+    const checkTextEl = document.getElementById('checkText');
+    const backBtn = document.getElementById('backBtn');
+    const exitModal = document.getElementById('exitModal');
+
+    const modeOverlay = document.getElementById('modeOverlay');
+    const singleBtn = document.getElementById('singleBtn');
+    const twoBtn = document.getElementById('twoBtn');
+
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitleEl = document.getElementById('modalTitle');
+    const modalTextEl = document.getElementById('modalText');
+    const modalActionsEl = document.getElementById('modalActions');
+    const modalClose = document.getElementById('modalClose');
+
+    const pieceIcons = {
+      r: '♜', n: '♞', b: '♝', q: '♛', k: '♚', p: '♟️',
+      R: '♖', N: '♘', B: '♗', Q: '♕', K: '♔', P: '♙'
+    };
+    let gameMode = null; // '1p' | '2p'
+    let board = [];
+    let squares = [];
+    let selected = null;
+    let validMoves = [];
+    let turn = 'W';
+    let gameOver = false;
+    let waitingPromotion = false;
+    let aiThinking = false;
+    let isAnimating = false;
+
+    let castling = null;
+    let enPassant = null;
+
+    /* ===================== صوت ===================== */
+    let audioCtx = null, masterGain = null;
+    function ensureAudio() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        audioCtx = new AC();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.55;
+        masterGain.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => { });
+    }
+
+    function makeNoiseBuffer(duration = 0.12) {
+      const sr = audioCtx.sampleRate;
+      const len = Math.max(1, Math.floor(sr * duration));
+      const buf = audioCtx.createBuffer(1, len, sr);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * 0.85;
+      return buf;
+    }
+
+    function envGain(g, t0, a = 0.005, d = 0.12, peak = 0.22) {
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(peak, t0 + a);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + a + d);
+    }
+
+    function playNoiseHit({ duration = 0.10, cutoff = 1500, peak = 0.20 }) {
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+
+      const src = audioCtx.createBufferSource();
+      src.buffer = makeNoiseBuffer(duration);
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(cutoff, t0);
+      const g = audioCtx.createGain();
+      envGain(g, t0, 0.003, duration, peak);
+
+      src.connect(filter);
+      filter.connect(g);
+      g.connect(masterGain);
+
+      src.start(t0);
+      src.stop(t0 + duration + 0.05);
+    }
+
+    function playTone({ freq = 140, duration = 0.14, type = 'sine', peak = 0.10, slideTo = null }) {
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+
+      const o = audioCtx.createOscillator();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t0);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + duration);
+      const g = audioCtx.createGain();
+      envGain(g, t0, 0.004, duration, peak);
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1800, t0);
+
+      o.connect(filter);
+      filter.connect(g);
+      g.connect(masterGain);
+
+      o.start(t0);
+      o.stop(t0 + duration + 0.05);
+    }
+
+    function playSound(name) {
+      ensureAudio();
+      if (!audioCtx) return;
+
+      if (name === 'button') {
+        playNoiseHit({ duration: 0.06, cutoff: 2200, peak: 0.10 });
+        playTone({ freq: 180, duration: 0.06, type: 'triangle', peak: 0.05 });
+      }
+      if (name === 'select') {
+        playNoiseHit({ duration: 0.07, cutoff: 1700, peak: 0.12 });
+        playTone({ freq: 220, duration: 0.08, type: 'sine', peak: 0.05, slideTo: 200 });
+      }
+      if (name === 'move') {
+        playNoiseHit({ duration: 0.08, cutoff: 1200, peak: 0.12 });
+        playTone({ freq: 160, duration: 0.10, type: 'sine', peak: 0.06, slideTo: 140 });
+      }
+      if (name === 'capture') {
+        playNoiseHit({ duration: 0.11, cutoff: 900, peak: 0.20 });
+        playTone({ freq: 130, duration: 0.14, type: 'sawtooth', peak: 0.07, slideTo: 95 });
+      }
+      if (name === 'check') {
+        playTone({ freq: 260, duration: 0.12, type: 'square', peak: 0.07, slideTo: 210 });
+        setTimeout(() => playTone({ freq: 240, duration: 0.12, type: 'square', peak: 0.06, slideTo: 190 }), 110);
+      }
+      if (name === 'win') {
+        playTone({ freq: 196, duration: 0.14, type: 'triangle', peak: 0.08 });
+        setTimeout(() => playTone({ freq: 247, duration: 0.14, type: 'triangle', peak: 0.08 }), 140);
+        setTimeout(() => playTone({ freq: 294, duration: 0.18, type: 'triangle', peak: 0.09 }), 280);
+      }
+      if (name === 'lose') {
+        playTone({ freq: 220, duration: 0.16, type: 'sawtooth', peak: 0.07, slideTo: 165 });
+        setTimeout(() => playTone({ freq: 196, duration: 0.18, type: 'sawtooth', peak: 0.07, slideTo: 140 }), 170);
+      }
+      if (name === 'important') {
+        playNoiseHit({ duration: 0.09, cutoff: 1500, peak: 0.16 });
+        playTone({ freq: 200, duration: 0.12, type: 'triangle', peak: 0.06 });
+        setTimeout(() => playTone({ freq: 260, duration: 0.12, type: 'triangle', peak: 0.06 }), 120);
+      }
+    }
+    window.addEventListener('pointerdown', ensureAudio, { once: true });
+
+    /* ===================== مودال عمومی ===================== */
+    function showModal({ title = 'پیام', text = '', actions = [], closable = true }) {
+      modalTitleEl.textContent = title;
+      modalTextEl.textContent = text;
+      modalActionsEl.innerHTML = '';
+      modalClose.style.display = closable ? 'inline-flex' : 'none';
+      if (actions.length) {
+        const row = document.createElement('div');
+        row.className = 'btnRow';
+        actions.forEach(a => {
+          const b = document.createElement('button');
+          b.className = `btn ${a.secondary ? 'secondary' : ''}`.trim();
+          b.textContent = a.text;
+          b.onclick = () => { playSound('button'); a.onClick(); };
+          row.appendChild(b);
+        });
+        modalActionsEl.appendChild(row);
+      }
+
+      modalOverlay.classList.add('show');
+      modalOverlay.setAttribute('aria-hidden', 'false');
+    }
+    function hideModal() {
+      modalOverlay.classList.remove('show');
+      modalOverlay.setAttribute('aria-hidden', 'true');
+    }
+    modalClose.onclick = () => { playSound('button'); hideModal(); };
+
+    /* ===================== مودال خروج ===================== */
+    function openExitModal() {
+      exitModal.classList.add('show');
+      exitModal.setAttribute('aria-hidden', 'false');
+    }
+    function closeExitModal() {
+      exitModal.classList.remove('show');
+      exitModal.setAttribute('aria-hidden', 'true');
+    }
+    function exitGame() {
+      window.location.href = 'index.html';
+    }
+    backBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      playSound('button');
+      openExitModal();
+    });
+    exitModal.addEventListener('click', (e) => {
+      if (e.target === exitModal) closeExitModal();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (exitModal.classList.contains('show')) closeExitModal();
+        else if (modalOverlay.classList.contains('show')) hideModal();
+      }
+    });
+
+    /* ===================== شطرنج ===================== */
+    function isWhite(p) { return p && p === p.toUpperCase(); }
+    function colorOf(p) { return p ? (isWhite(p) ? 'W' : 'B') : null; }
+    function inBounds(r, c) { return r >= 0 && r < 8 && c >= 0 && c < 8; }
+
+    function initBoardData() {
+      board = [
+        ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+        ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+        ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
+      ];
+      selected = null;
+      validMoves = [];
+      turn = 'W';
+      gameOver = false;
+      waitingPromotion = false;
+      aiThinking = false;
+      isAnimating = false;
+
+      castling = { WK: true, WQ: true, BK: true, BQ: true };
+      enPassant = null;
+    }
+
+    function initUI() {
+      const wrapper = document.getElementById('boardWrapper');
+      // پاک کردن مختصات قبلی در صورت ری‌استارت
+      wrapper.querySelectorAll('.coord').forEach(el => el.remove());
+
+      boardEl.innerHTML = '';
+      squares = [];
+
+      for (let r = 0; r < 8; r++) {
+        // ایجاد اعداد ردیف‌ها (از 8 تا 1)
+        const rankLabel = 8 - r;
+
+        // عدد سمت چپ
+        const rL = document.createElement('div');
+        rL.className = 'coord rank left';
+        rL.style.top = `calc(var(--coordSpace) + ${r} * var(--cell))`;
+        rL.textContent = rankLabel;
+        wrapper.appendChild(rL);
+
+        // عدد سمت راست
+        const rR = document.createElement('div');
+        rR.className = 'coord rank right';
+        rR.style.top = `calc(var(--coordSpace) + ${r} * var(--cell))`;
+        rR.textContent = rankLabel;
+        wrapper.appendChild(rR);
+
+        for (let c = 0; c < 8; c++) {
+          // ایجاد حروف ستون‌ها (A تا H) فقط در ردیف اول تولید و تنظیم می‌شوند
+          if (r === 0) {
+            const fileLabel = String.fromCharCode(65 + c); // 65 = A
+
+            // حرف بالا
+            const fT = document.createElement('div');
+            fT.className = 'coord file top';
+            fT.style.left = `calc(var(--coordSpace) + ${c} * var(--cell))`;
+            fT.textContent = fileLabel;
+            wrapper.appendChild(fT);
+
+            // حرف پایین
+            const fB = document.createElement('div');
+            fB.className = 'coord file bottom';
+            fB.style.left = `calc(var(--coordSpace) + ${c} * var(--cell))`;
+            fB.textContent = fileLabel;
+            wrapper.appendChild(fB);
+          }
+
+          const sq = document.createElement('div');
+          sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
+          sq.addEventListener('click', () => onSquareClick(r, c));
+          boardEl.appendChild(sq);
+          squares.push(sq);
+        }
+      }
+    }
+
+    function goHome() { location.href = 'index.html'; }
+
+    function restartSameMode() {
+      initBoardData();
+      render();
+      updateTopMenu();
+      if (gameMode === '1p' && turn === 'B') scheduleAi();
+    }
+
+    function startGame(mode) {
+      gameMode = mode;
+      modeOverlay.classList.remove('show');
+      modeOverlay.setAttribute('aria-hidden', 'true');
+      restartSameMode();
+    }
+
+    function setTurnUI() {
+      turnDotEl.style.background = (turn === 'W') ? '#ffffff' : '#222222';
+      turnDotEl.style.borderColor = 'rgba(0,0,0,.15)';
+      turnTextEl.innerHTML = turn === 'W' ? `نوبت: <b>سفید</b>` : `نوبت: <b>سیاه</b>`;
+    }
+
+    function setCheckCenterUI() {
+      const wIn = isInCheck('W');
+      const bIn = isInCheck('B');
+      let show = false;
+      let msg = '';
+
+      if (wIn) { show = true; msg = 'شاه سفید کیش است'; }
+      if (bIn) { show = true; msg = 'شاه سیاه کیش است'; }
+
+      checkTextEl.textContent = msg || '—';
+      checkBadgeEl.classList.toggle('show', show);
+    }
+
+    function ensureKingsExistOrEnd() {
+      const wk = findKing('W');
+      const bk = findKing('B');
+      if (wk && bk) return true;
+
+      gameOver = true;
+      const winner = wk ? 'سفید' : 'سیاه';
+      showModal({
+        title: 'پایان بازی',
+        text: `شاه ${(wk ? 'سیاه' : 'سفید')} از صفحه حذف شده است.\n${winner} برنده شد.`,
+        closable: false,
+        actions: [
+          { text: 'بازی دوباره', onClick: () => { hideModal(); restartSameMode(); } },
+          { text: 'خروج', secondary: true, onClick: goHome }
+        ]
+      });
+      return false;
+    }
+
+    function updateTopMenu() {
+      if (gameOver) return;
+      setTurnUI();
+      setCheckCenterUI();
+    }
+
+    function findKing(color) {
+      const k = color === 'W' ? 'K' : 'k';
+      for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) if (board[r][c] === k) return { r, c };
+      return null;
+    }
+
+    function isSquareAttacked(r, c, attackerColor) {
+      const pawn = attackerColor === 'W' ? 'P' : 'p';
+      const knight = attackerColor === 'W' ? 'N' : 'n';
+      const bishop = attackerColor === 'W' ? 'B' : 'b';
+      const rook = attackerColor === 'W' ? 'R' : 'r';
+      const queen = attackerColor === 'W' ? 'Q' : 'q';
+      const king = attackerColor === 'W' ? 'K' : 'k';
+
+      const pawnDir = attackerColor === 'W' ? -1 : 1;
+
+      if (inBounds(r - pawnDir, c - 1) && board[r - pawnDir][c - 1] === pawn) return true;
+      if (inBounds(r - pawnDir, c + 1) && board[r - pawnDir][c + 1] === pawn) return true;
+      const nm = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
+      for (const [dr, dc] of nm) if (inBounds(r + dr, c + dc) && board[r + dr][c + dc] === knight) return true;
+      const km = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+      for (const [dr, dc] of km) if (inBounds(r + dr, c + dc) && board[r + dr][c + dc] === king) return true;
+      const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]];
+      for (const [dr, dc] of dirs) {
+        let rr = r + dr, cc = c + dc;
+        while (inBounds(rr, cc)) {
+          const p = board[rr][cc];
+          if (p) {
+            const straight = (dr === 0 || dc === 0);
+            const diag = (Math.abs(dr) === Math.abs(dc));
+            if ((straight && p === rook) || (diag && p === bishop) || p === queen) return true;
+            break;
+          }
+          rr += dr; cc += dc;
+        }
+      }
+      return false;
+    }
+
+    function isInCheck(color) {
+      const kp = findKing(color);
+      if (!kp) return false;
+      return isSquareAttacked(kp.r, kp.c, color === 'W' ? 'B' : 'W');
+    }
+
+    function cloneBoard() { return board.map(row => row.slice()); }
+
+    function getPseudoMoves(r, c) {
+      const p = board[r][c];
+      if (!p) return [];
+      const white = isWhite(p);
+      const me = colorOf(p);
+      const moves = [];
+      const add = (rr, cc, type, meta = {}) => {
+        if (!inBounds(rr, cc)) return;
+        moves.push({ r: rr, c: cc, type, ...meta });
+      };
+
+      const pushStep = (rr, cc) => {
+        if (!inBounds(rr, cc)) return;
+        const t = board[rr][cc];
+        if (!t) add(rr, cc, 'move');
+        else if (colorOf(t) !== me) add(rr, cc, 'kill');
+      };
+      const low = p.toLowerCase();
+
+      if (low === 'p') {
+        const dir = white ? -1 : 1;
+        const startRow = white ? 6 : 1;
+        const promoRow = white ? 0 : 7;
+        if (inBounds(r + dir, c) && !board[r + dir][c]) {
+          if (r + dir === promoRow) add(r + dir, c, 'promo');
+          else add(r + dir, c, 'move');
+          if (r === startRow && !board[r + 2 * dir][c]) add(r + 2 * dir, c, 'move', { doublePawn: true });
+        }
+
+        for (const dc of [-1, 1]) {
+          const rr = r + dir, cc = c + dc;
+          if (!inBounds(rr, cc)) continue;
+          const t = board[rr][cc];
+          if (t && colorOf(t) !== me) {
+            if (rr === promoRow) add(rr, cc, 'promo-kill');
+            else add(rr, cc, 'kill');
+          }
+        }
+
+        if (enPassant) {
+          for (const dc of [-1, 1]) {
+            const rr = r + dir, cc = c + dc;
+            if (rr === enPassant.r && cc === enPassant.c) add(rr, cc, 'enpassant');
+          }
+        }
+      }
+
+      if (low === 'n') {
+        const steps = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
+        for (const [dr, dc] of steps) pushStep(r + dr, c + dc);
+      }
+
+      if (low === 'b' || low === 'r' || low === 'q') {
+        const dirs = [];
+        if (low === 'b' || low === 'q') dirs.push([-1, -1], [-1, 1], [1, -1], [1, 1]);
+        if (low === 'r' || low === 'q') dirs.push([-1, 0], [1, 0], [0, -1], [0, 1]);
+        for (const [dr, dc] of dirs) {
+          let rr = r + dr, cc = c + dc;
+          while (inBounds(rr, cc)) {
+            const t = board[rr][cc];
+            if (!t) add(rr, cc, 'move');
+            else { if (colorOf(t) !== me) add(rr, cc, 'kill'); break; }
+            rr += dr; cc += dc;
+          }
+        }
+      }
+
+      if (low === 'k') {
+        const steps = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+        for (const [dr, dc] of steps) pushStep(r + dr, c + dc);
+        if (me === 'W') {
+          if (castling.WK && r === 7 && c === 4 && board[7][5] === '' && board[7][6] === '' && board[7][7] === 'R') add(7, 6, 'castle', { side: 'K' });
+          if (castling.WQ && r === 7 && c === 4 && board[7][3] === '' && board[7][2] === '' && board[7][1] === '' && board[7][0] === 'R') add(7, 2, 'castle', { side: 'Q' });
+        } else {
+          if (castling.BK && r === 0 && c === 4 && board[0][5] === '' && board[0][6] === '' && board[0][7] === 'r') add(0, 6, 'castle', { side: 'K' });
+          if (castling.BQ && r === 0 && c === 4 && board[0][3] === '' && board[0][2] === '' && board[0][1] === '' && board[0][0] === 'r') add(0, 2, 'castle', { side: 'Q' });
+        }
+      }
+
+      return moves;
+    }
+
+    function applyMoveNoUI(fR, fC, m) {
+      const piece = board[fR][fC];
+      const me = colorOf(piece);
+
+      enPassant = null;
+
+      const captured = board[m.r][m.c];
+      if (captured && captured.toLowerCase() === 'k') return { illegal: true, reason: 'capture-king' };
+
+      if (captured === 'R' && m.r === 7 && m.c === 0) castling.WQ = false;
+      if (captured === 'R' && m.r === 7 && m.c === 7) castling.WK = false;
+      if (captured === 'r' && m.r === 0 && m.c === 0) castling.BQ = false;
+      if (captured === 'r' && m.r === 0 && m.c === 7) castling.BK = false;
+
+      if (piece === 'K') { castling.WK = false; castling.WQ = false; }
+      if (piece === 'k') { castling.BK = false; castling.BQ = false; }
+      if (piece === 'R' && fR === 7 && fC === 0) castling.WQ = false;
+      if (piece === 'R' && fR === 7 && fC === 7) castling.WK = false;
+      if (piece === 'r' && fR === 0 && fC === 0) castling.BQ = false;
+      if (piece === 'r' && fR === 0 && fC === 7) castling.BK = false;
+
+      if (m.type === 'enpassant') {
+        const dir = (me === 'W') ? 1 : -1;
+        const victim = board[m.r + dir][m.c];
+        if (victim && victim.toLowerCase() === 'k') return { illegal: true, reason: 'capture-king' };
+        board[m.r + dir][m.c] = '';
+        board[m.r][m.c] = piece;
+        board[fR][fC] = '';
+        return { illegal: false };
+      }
+
+      if (m.type === 'castle') {
+        const row = (me === 'W') ? 7 : 0;
+        if (m.side === 'K') {
+          board[row][6] = board[row][4];
+          board[row][4] = '';
+          board[row][5] = board[row][7]; board[row][7] = '';
+        } else {
+          board[row][2] = board[row][4];
+          board[row][4] = '';
+          board[row][3] = board[row][0]; board[row][0] = '';
+        }
+        if (me === 'W') { castling.WK = false; castling.WQ = false; }
+        else { castling.BK = false; castling.BQ = false; }
+        return { illegal: false };
+      }
+
+      board[m.r][m.c] = piece;
+      board[fR][fC] = '';
+      if (piece.toLowerCase() === 'p' && m.doublePawn) {
+        const dir = (me === 'W') ? -1 : 1;
+        enPassant = { r: fR + dir, c: fC };
+      }
+
+      return { illegal: false };
+    }
+
+    function getValidMoves(r, c) {
+      const p = board[r][c];
+      if (!p) return [];
+      const me = colorOf(p);
+
+      if (!ensureKingsExistOrEnd()) return [];
+      const pseudo = getPseudoMoves(r, c);
+
+      return pseudo.filter(m => {
+        const dst = board[m.r][m.c];
+        if (dst && dst.toLowerCase() === 'k') return false;
+
+        const backup = {
+          board: cloneBoard(),
+          castling: { ...castling },
+          enPassant: enPassant ? { ...enPassant } : null
+        };
+
+        const res = applyMoveNoUI(r, c, m);
+        if (res && res.illegal) {
+          board = backup.board; castling = backup.castling; enPassant = backup.enPassant;
+          return false;
+        }
+
+        let ok = true;
+        if (p.toLowerCase() === 'k' && m.type === 'castle') {
+          const enemy = me === 'W' ? 'B' : 'W';
+          const row = me === 'W' ? 7 : 0;
+          const passSquares = (m.side === 'K')
+            ? [{ r: row, c: 4 }, { r: row, c: 5 }, { r: row, c: 6 }]
+            : [{ r: row, c: 4 }, { r: row, c: 3 }, { r: row, c: 2 }];
+          if (passSquares.some(sq => isSquareAttacked(sq.r, sq.c, enemy))) ok = false;
+        }
+
+        if (ok) ok = !isInCheck(me);
+        board = backup.board;
+        castling = backup.castling;
+        enPassant = backup.enPassant;
+
+        return ok;
+      });
+    }
+
+    function render() {
+      const wCheck = isInCheck('W');
+      const bCheck = isInCheck('B');
+      for (let i = 0; i < 64; i++) {
+        const r = i >> 3, c = i & 7;
+        const sq = squares[i];
+        const p = board[r][c];
+
+        sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
+
+        if (selected && selected.r === r && selected.c === c) sq.classList.add('selected');
+        const hint = validMoves.find(m => m.r === r && m.c === c);
+        if (hint) {
+          const dangerTypes = ['kill', 'promo-kill', 'enpassant'];
+          sq.classList.add(dangerTypes.includes(hint.type) ? 'danger' : 'hint');
+        }
+
+        if ((p === 'K' && wCheck) || (p === 'k' && bCheck)) sq.classList.add('in-check');
+        sq.innerHTML = '';
+        if (p) {
+          const pe = document.createElement('div');
+          pe.className = 'piece';
+          pe.textContent = pieceIcons[p];
+          pe.style.color = isWhite(p) ? '#fff' : '#111';
+          pe.style.textShadow = isWhite(p) ? '0 1px 2px rgba(0,0,0,.35)' : 'none';
+          sq.appendChild(pe);
+        }
+      }
+    }
+
+    function squareEl(r, c) { return squares[r * 8 + c]; }
+
+    function animateMove(fR, fC, tR, tC, cb) {
+      const fromSq = squareEl(fR, fC);
+      const toSq = squareEl(tR, tC);
+      const pieceEl = fromSq.querySelector('.piece');
+      if (!pieceEl) { cb(); return; }
+
+      const fr = pieceEl.getBoundingClientRect();
+      const tr = toSq.getBoundingClientRect();
+
+      const clone = pieceEl.cloneNode(true);
+      clone.classList.add('fly-piece');
+      clone.style.width = fr.width + 'px';
+      clone.style.height = fr.height + 'px';
+      clone.style.left = fr.left + 'px';
+      clone.style.top = fr.top + 'px';
+      clone.style.transform = 'translate(0px,0px)';
+
+      document.body.appendChild(clone);
+      pieceEl.style.visibility = 'hidden';
+
+      const dx = tr.left - fr.left;
+      const dy = tr.top - fr.top;
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        clone.removeEventListener('transitionend', finish);
+        clone.remove();
+        cb();
+      };
+
+      requestAnimationFrame(() => { clone.style.transform = `translate(${dx}px, ${dy}px)`; });
+      clone.addEventListener('transitionend', finish);
+      setTimeout(finish, 320);
+    }
+
+    function showPromotionModal(color, onPick) {
+      const pieces = (color === 'W') ? ['Q', 'R', 'B', 'N'] : ['q', 'r', 'b', 'n'];
+
+      showModal({
+        title: 'ارتقا پیاده',
+        text: 'یک مهره انتخاب کن:',
+        actions: [],
+        closable: false
+      });
+      modalActionsEl.innerHTML = '';
+      const menu = document.createElement('div');
+      menu.className = 'promo-menu';
+      pieces.forEach(pp => {
+        const d = document.createElement('div');
+        d.className = 'promo-choice';
+        d.textContent = pieceIcons[pp];
+        d.onclick = () => { playSound('button'); hideModal(); onPick(pp); };
+        menu.appendChild(d);
+      });
+      modalActionsEl.appendChild(menu);
+    }
+
+    const pieceValue = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+    function evalMaterialFor(color) {
+      let score = 0;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const p = board[r][c];
+          if (!p) continue;
+          const v = pieceValue[p.toLowerCase()] || 0;
+          score += (colorOf(p) === color) ? v : -v;
+        }
+      }
+      return score;
+    }
+
+    function chooseBestPromotionForAI(aiColor, atR, atC) {
+      const opp = (aiColor === 'W') ? 'B' : 'W';
+      const candidates = (aiColor === 'W') ? ['Q', 'R', 'B', 'N'] : ['q', 'r', 'b', 'n'];
+      const backup = board[atR][atC];
+      let best = candidates[0];
+      let bestScore = -Infinity;
+      for (const cand of candidates) {
+        board[atR][atC] = cand;
+        let s = evalMaterialFor(aiColor);
+        if (isInCheck(opp)) s += 45;
+        if (cand.toLowerCase() === 'r') s += 6;
+        if (cand.toLowerCase() === 'b') s += 4;
+        if (cand.toLowerCase() === 'n') s += 2;
+
+        if (s > bestScore) { bestScore = s; best = cand; }
+      }
+
+      board[atR][atC] = backup;
+      return best;
+    }
+
+    function executeMove(fR, fC, move) {
+      const piece = board[fR][fC];
+      const moverColor = colorOf(piece);
+
+      const dst = board[move.r][move.c];
+      if (dst && dst.toLowerCase() === 'k') return;
+
+      isAnimating = true;
+      animateMove(fR, fC, move.r, move.c, () => {
+        const wasCapture = (move.type === 'kill' || move.type === 'promo-kill' || move.type === 'enpassant');
+
+        const res = applyMoveNoUI(fR, fC, move);
+        if (res && res.illegal) {
+          isAnimating = false;
+          render();
+          updateTopMenu();
+          return;
+        }
+
+        if (!ensureKingsExistOrEnd()) {
+          isAnimating = false;
+          render();
+          return;
+        }
+
+        const willPromote = piece.toLowerCase() === 'p' && (move.type === 'promo' || move.type === 'promo-kill');
+        if (willPromote) {
+          if (gameMode === '1p' && moverColor === 'B') {
+            const best = chooseBestPromotionForAI('B', move.r, move.c);
+            board[move.r][move.c] = best;
+            playSound('important');
+            isAnimating = false;
+            finalizeMove();
+            return;
+          }
+
+          waitingPromotion = true;
+          render();
+          updateTopMenu();
+          playSound('important');
+          showPromotionModal(moverColor, (newPiece) => {
+            board[move.r][move.c] = newPiece;
+            waitingPromotion = false;
+            isAnimating = false;
+            finalizeMove();
+          });
+          return;
+        }
+
+        if (wasCapture) playSound('capture');
+        else playSound('move');
+
+        isAnimating = false;
+        finalizeMove();
+      });
+    }
+
+    function finalizeMove() {
+      selected = null;
+      validMoves = [];
+      turn = (turn === 'W') ? 'B' : 'W';
+      enPassant = null;
+
+      render();
+      if (!ensureKingsExistOrEnd()) return;
+
+      if (isInCheck(turn)) playSound('check');
+
+      checkGameState();
+      updateTopMenu();
+
+      if (!gameOver && gameMode === '1p' && turn === 'B') scheduleAi();
+    }
+
+    function checkGameState() {
+      if (!ensureKingsExistOrEnd()) return;
+      let hasMoves = false;
+      for (let r = 0; r < 8 && !hasMoves; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (board[r][c] && colorOf(board[r][c]) === turn) {
+            if (getValidMoves(r, c).length > 0) { hasMoves = true; break; }
+          }
+        }
+      }
+      if (hasMoves) return;
+      gameOver = true;
+      const check = isInCheck(turn);
+
+      const text = check
+        ? `مات!\n${(turn === 'W') ? 'سیاه' : 'سفید'} برنده شد.`
+        : 'بازی مساوی شد (پات).';
+      if (check) {
+        if (gameMode === '1p') {
+          const winnerColor = (turn === 'W') ? 'B' : 'W';
+          if (winnerColor === 'W') playSound('win'); else playSound('lose');
+        } else {
+          playSound('win');
+        }
+      }
+
+      showModal({
+        title: 'پایان بازی',
+        text,
+        closable: false,
+        actions: [
+          { text: 'بازی دوباره', onClick: () => { hideModal(); restartSameMode(); } },
+          { text: 'خروج', secondary: true, onClick: goHome }
+        ]
+      });
+    }
+
+    function scheduleAi() {
+      aiThinking = true;
+      setTimeout(aiMove, 350);
+    }
+
+    function onSquareClick(r, c) {
+      ensureAudio();
+      if (gameOver || waitingPromotion || aiThinking || isAnimating) return;
+      if (gameMode === '1p' && turn === 'B') return;
+      const clicked = validMoves.find(m => m.r === r && m.c === c);
+      if (selected && clicked) {
+        executeMove(selected.r, selected.c, clicked);
+        return;
+      }
+
+      const p = board[r][c];
+      if (p && colorOf(p) === turn) {
+        selected = { r, c };
+        validMoves = getValidMoves(r, c);
+        playSound('select');
+      } else {
+        selected = null;
+        validMoves = [];
+      }
+
+      render();
+      updateTopMenu();
+    }
+
+    function aiMove() {
+      if (gameOver) { aiThinking = false; return; }
+      if (!ensureKingsExistOrEnd()) { aiThinking = false; return; }
+
+      const moves = [];
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (board[r][c] && colorOf(board[r][c]) === 'B') {
+            getValidMoves(r, c).forEach(m => moves.push({ fromR: r, fromC: c, m }));
+          }
+        }
+      }
+      aiThinking = false;
+      if (!moves.length) {
+        checkGameState();
+        updateTopMenu();
+        return;
+      }
+
+      const captures = moves.filter(x => ['kill', 'promo-kill', 'enpassant'].includes(x.m.type));
+      const pickFrom = captures.length ? captures : moves;
+
+      const filtered = pickFrom.filter(x => {
+        const dst = board[x.m.r][x.m.c];
+        return !(dst && dst.toLowerCase() === 'k');
+      });
+      const list = filtered.length ? filtered : pickFrom;
+      const chosen = list[Math.floor(Math.random() * list.length)];
+
+      executeMove(chosen.fromR, chosen.fromC, chosen.m);
+    }
+
+    singleBtn.onclick = () => { playSound('button'); startGame('1p'); };
+    twoBtn.onclick = () => { playSound('button'); startGame('2p'); };
+
+    function getQueryParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
+    initBoardData();
+    initUI();
+    render();
+    updateTopMenu();
+    
+    modeOverlay.classList.add('show');
+    modeOverlay.setAttribute('aria-hidden', 'false');
+    
+    (function applyModeFromUrlIfAny() {
+      const mode = getQueryParam('mode');
+      if (mode === 'robot') startGame('1p');
+      else if (mode === 'two') startGame('2p');
+    })();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بازی دومینو حرفه ای - نسخه انیمیشن پیشرفته</title>
+    <style>
+        @import url('https://v1.fontapi.ir/css/Vazir');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Vazir', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            background: radial-gradient(circle, #2e7d32 0%, #1b5e20 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 1);
+        }
+
+        .header {
+            background: linear-gradient(to bottom, #3e2723, #261714);
+            border-bottom: 3px solid #ffb300;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
+        }
+
+        .scores-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .score-board {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 14px;
+            color: #d7ccc8;
+        }
+
+        .score-val {
+            font-size: 24px;
+            color: #ffca28;
+            text-shadow: 1px 1px 3px #000;
+            font-weight: 900;
+            transition: transform 0.2s;
+        }
+
+        .round-badge {
+            background: #5e35b1;
+            padding: 5px 20px;
+            border-radius: 20px;
+            border: 2px solid #ffca28;
+            font-size: 15px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-btn {
+            background: linear-gradient(to bottom, #ffca28, #ff8f00);
+            color: #3e2723;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+            transition: transform 0.1s;
+            font-family: 'Vazir', sans-serif;
+        }
+
+        .menu-btn:active {
+            transform: scale(0.95);
+        }
+
+        .bot-area {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            background: rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 5px 0;
+        }
+
+        #bot-hand-count {
+            display: flex;
+            gap: 5px;
+            min-height: 64px;
+            align-items: center;
+        }
+
+        .mini-back {
+            width: 20px;
+            height: 40px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.6);
+        }
+
+        .board-area {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #board-pan {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            transition: transform 0.3s ease-out;
+        }
+
+        .player-area {
+            min-height: 120px;
+            background: linear-gradient(to top, #5d4037, #795548);
+            border-top: 4px solid #3e2723;
+            border-radius: 25px 25px 0 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 10px;
+            z-index: 10;
+            position: relative;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        #player-hand {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            min-height: 64px;
+        }
+
+        .domino {
+            width: 32px;
+            height: 64px;
+            background: #fffcf0;
+            border-radius: 8px;
+            box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.5), inset 1px 1px 0 rgba(255, 255, 255, 0.8);
+            border: 1px solid #8b5a2b;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+            position: relative;
+        }
+
+        .half {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            align-items: center;
+            justify-items: center;
+            padding: 4px;
+        }
+
+        .divider {
+            height: 2px;
+            width: 85%;
+            margin: 0 auto;
+            background: #c49a6c;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+            border-radius: 2px;
+        }
+
+        .dot {
+            width: 5.5px;
+            height: 5.5px;
+            background: #2b2b2b;
+            border-radius: 50%;
+            opacity: 0;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+        }
+
+        [data-val="1"] .dot:nth-child(5) {
+            opacity: 1;
+        }
+
+        [data-val="2"] .dot:nth-child(1),
+        [data-val="2"] .dot:nth-child(9) {
+            opacity: 1;
+        }
+
+        [data-val="3"] .dot:nth-child(1),
+        [data-val="3"] .dot:nth-child(5),
+        [data-val="3"] .dot:nth-child(9) {
+            opacity: 1;
+        }
+
+        [data-val="4"] .dot:nth-child(1),
+        [data-val="4"] .dot:nth-child(3),
+        [data-val="4"] .dot:nth-child(7),
+        [data-val="4"] .dot:nth-child(9) {
+            opacity: 1;
+        }
+
+        [data-val="5"] .dot:nth-child(1),
+        [data-val="5"] .dot:nth-child(3),
+        [data-val="5"] .dot:nth-child(5),
+        [data-val="5"] .dot:nth-child(7),
+        [data-val="5"] .dot:nth-child(9) {
+            opacity: 1;
+        }
+
+        [data-val="6"] .dot:nth-child(1),
+        [data-val="6"] .dot:nth-child(4),
+        [data-val="6"] .dot:nth-child(7),
+        [data-val="6"] .dot:nth-child(3),
+        [data-val="6"] .dot:nth-child(6),
+        [data-val="6"] .dot:nth-child(9) {
+            opacity: 1;
+        }
+
+        .domino.back {
+            background: #4e3e2e;
+            border: 1px solid #2c1f12;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 0 2px #6b4c2c;
+        }
+
+        .board-tile {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .board-tile .domino {
+            position: absolute;
+            left: -16px;
+            top: -32px;
+            cursor: default;
+        }
+
+        .playable {
+            box-shadow: 0 0 12px 4px rgba(76, 175, 80, 0.9), inset 1px 1px 3px rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-8px);
+        }
+
+        .selected {
+            outline: 3px solid #ffeb3b;
+            transform: scale(1.15) translateY(-12px);
+            z-index: 20;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.9) !important;
+        }
+
+        .placement-target {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #ffeb3b;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            z-index: 30;
+            box-shadow: 0 0 20px 8px rgba(255, 235, 59, 0.8);
+            animation: pulse 0.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(0.7);
+                opacity: 1;
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 0.9;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(0.7);
+                opacity: 1;
+            }
+        }
+
+        .toast-message {
+            position: absolute;
+            bottom: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #ffca28;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 200;
+            white-space: nowrap;
+            pointer-events: none;
+            animation: fadeOut 2s ease forwards;
+            border: 1px solid #ffca28;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                bottom: 140px;
+            }
+
+            70% {
+                opacity: 1;
+                bottom: 160px;
+            }
+
+            100% {
+                opacity: 0;
+                bottom: 180px;
+                visibility: hidden;
+            }
+        }
+
+        #animation-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 99;
+            pointer-events: none;
+            display: none;
+            overflow: hidden;
+        }
+
+        #modal-overlay,
+        #exit-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #exit-modal-overlay {
+            z-index: 110;
+        }
+
+        .modal-box {
+            background: #2a2418;
+            color: #f5e6c4;
+            border-radius: 20px;
+            padding: 25px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            border: 2px solid #ffca28;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+        }
+
+        #boneyard-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, #ffca28, #ff8f00);
+            color: #3e2723;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            font-family: 'Vazir';
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            transition: transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        #message-box {
+            font-size: 20px;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .bank-info {
+            position: absolute;
+            bottom: 135px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffd966;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 5;
+            border: 1px solid #ffca28;
+            backdrop-filter: blur(2px);
+            transition: transform 0.2s;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <div class="header">
+            <div class="scores-container">
+                <div class="score-badge" id="player-badge">شما <span class="score-val" id="player-score">0</span></div>
+                <div style="color: #ffca28; font-size: 18px; margin: 0 2px;">:</div>
+                <div class="score-badge" id="bot-badge">ربات <span class="score-val" id="bot-score">0</span></div>
+            </div>
+            <div class="score-board">
+                <div class="round-badge" id="round-display">دست: 1</div>
+            </div>
+            <button class="menu-btn" id="menu-btn">منو</button>
+        </div>
+        <div class="bot-area">
+            <div id="bot-hand-count"></div>
+        </div>
+        <div class="bank-info" id="bank-count-display">بانک: 14</div>
+        <div class="board-area" id="board-area">
+            <div id="board-pan"></div>
+        </div>
+        <div class="player-area">
+            <div id="player-hand"></div>
+        </div>
+
+        <div id="animation-layer"></div>
+
+        <div id="modal-overlay">
+            <div class="modal-box">
+                <div id="message-box">پیام</div>
+                <div id="boneyard-container"></div>
+                <button class="btn" id="modal-btn" style="display:none;">تایید</button>
+            </div>
+        </div>
+
+        <div id="exit-modal-overlay">
+            <div class="modal-box">
+                <div style="font-size: 20px; margin-bottom: 20px; line-height: 1.6;">میخوای بری بیرون یا نه؟</div>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button class="btn" id="exit-yes-btn"
+                        style="margin-top:0; background: linear-gradient(to bottom, #e53935, #c62828); color: white;">بله</button>
+                    <button class="btn" id="exit-no-btn"
+                        style="margin-top:0; background: linear-gradient(to bottom, #757575, #616161); color: white;">خیر</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // شبیه‌سازی صدای واقعی و طبیعی افکت خوردن مهره‌های سنگین دومینو به هم
+        function playDominoSound() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const playClick = (delay, frequency, volume, duration) => {
+                    const now = audioCtx.currentTime + delay;
+
+                    // فرکانس تیز برای جنس پلاستیک/استخوان دومینو
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(frequency, now);
+                    osc.frequency.exponentialRampToValueAtTime(frequency / 3, now + duration);
+
+                    gainNode.gain.setValueAtTime(volume, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + duration + 0.01);
+
+                    // فرکانس بم تکمیلی برای القای وزن مهره دومینو (صدا پرتر بشه)
+                    const thud = audioCtx.createOscillator();
+                    const thudGain = audioCtx.createGain();
+                    thud.type = 'sine';
+                    thud.frequency.setValueAtTime(140, now);
+                    thudGain.gain.setValueAtTime(volume * 0.6, now);
+                    thudGain.gain.exponentialRampToValueAtTime(0.0001, now + duration * 1.5);
+
+                    thud.connect(thudGain);
+                    thudGain.connect(audioCtx.destination);
+                    thud.start(now);
+                    thud.stop(now + duration * 1.5 + 0.01);
+                };
+
+                // تولید ضربه دوتایی متوالی (کلیک-کلاک طبیعی زنجیره‌ای به علت لرزش نهایی سنگ)
+                playClick(0, 750, 0.22, 0.04);
+                playClick(0.015, 620, 0.12, 0.03);
+            } catch (e) { console.log("Audio error"); }
+        }
+
+        let boneyard = [], playerHand = [], botHand = [], board = [];
+        let ends = { A: null, B: null };
+        let playerScore = 0, botScore = 0, round = 1;
+        let turn = 0;
+        let selectedHandTile = null;
+        let gameOver = false;
+        let minX = 0, maxX = 0, minY = 0, maxY = 0;
+        let occupiedPositions = new Set();
+        let roundWinner = null;
+        let startingTileForce = null;
+
+        const elPlayerHand = document.getElementById('player-hand');
+        const elBotHandCount = document.getElementById('bot-hand-count');
+        const elBoardPan = document.getElementById('board-pan');
+        const elModal = document.getElementById('modal-overlay');
+        const elMsg = document.getElementById('message-box');
+        const elBoneyard = document.getElementById('boneyard-container');
+        const elBtn = document.getElementById('modal-btn');
+        const elPlayerScore = document.getElementById('player-score');
+        const elBotScore = document.getElementById('bot-score');
+        const elBankCount = document.getElementById('bank-count-display');
+        const boardArea = document.getElementById('board-area');
+        const elAnimLayer = document.getElementById('animation-layer');
+        // دریافت امتیاز هدف از آدرس صفحه (مثلاً domino.html?score=3) - اگر امتیازی فرستاده نشود پیش‌فرض 100 است
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetScore = parseInt(urlParams.get('score')) || 100;
+        // المان‌های مربوط به دکمه منو و پنجره خروج جدید
+        const elMenuBtn = document.getElementById('menu-btn');
+        const elExitModal = document.getElementById('exit-modal-overlay');
+        const elExitYes = document.getElementById('exit-yes-btn');
+        const elExitNo = document.getElementById('exit-no-btn');
+
+        elMenuBtn.onclick = () => { elExitModal.style.display = 'flex'; };
+        elExitNo.onclick = () => { elExitModal.style.display = 'none'; };
+        elExitYes.onclick = () => { window.location.href = 'index.html'; };
+
+        const LIMIT_X = 120;
+        const LIMIT_Y_A = 100;
+        const LIMIT_Y_B = 100;
+        const EXTRA_STEP = 28;
+
+        function updateDirection(endObj, endName) {
+            if (endName === 'A') {
+                if (endObj.dir === 1 && endObj.x > LIMIT_X) endObj.dir = 0;
+                else if (endObj.dir === 0 && endObj.y < -LIMIT_Y_A) endObj.dir = 3;
+                else if (endObj.dir === 3 && endObj.x < -LIMIT_X) endObj.dir = 0;
+                if (endObj.dir === 2) endObj.dir = 0;
+            }
+            else {
+                if (endObj.dir === 3 && endObj.x < -LIMIT_X) endObj.dir = 2;
+                else if (endObj.dir === 2 && endObj.y > LIMIT_Y_B) endObj.dir = 1;
+                else if (endObj.dir === 1 && endObj.x > LIMIT_X) endObj.dir = 2;
+                if (endObj.dir === 0) endObj.dir = 2;
+            }
+        }
+
+        function isPositionOccupied(x, y) {
+            return occupiedPositions.has(`${Math.round(x / 5) * 5},${Math.round(y / 5) * 5}`);
+        }
+        function addOccupied(x, y) {
+            occupiedPositions.add(`${Math.round(x / 5) * 5},${Math.round(y / 5) * 5}`);
+        }
+
+        function createDeck() {
+            let deck = [];
+            for (let i = 0; i <= 6; i++) {
+                for (let j = i; j <= 6; j++) {
+                    deck.push({ v1: i, v2: j, isDouble: i === j, id: `${i}-${j}` });
+                }
+            }
+            return deck.sort(() => Math.random() - 0.5);
+        }
+
+        function initRound() {
+            boneyard = createDeck();
+            playerHand = boneyard.splice(0, 7);
+            botHand = boneyard.splice(0, 7);
+            board = []; ends = { A: null, B: null };
+            selectedHandTile = null; gameOver = false;
+            minX = -50; maxX = 50; minY = -50; maxY = 50;
+            occupiedPositions.clear();
+            elBoardPan.innerHTML = '';
+            elBoardPan.style.transform = 'scale(1) translate(0px, 0px)';
+            document.getElementById('round-display').innerText = `دست: ${round}`;
+
+            startingTileForce = null;
+
+            if (round === 1 || roundWinner === null) {
+                let pHigh = Math.max(...playerHand.filter(t => t.isDouble).map(t => t.v1), -1);
+                let bHigh = Math.max(...botHand.filter(t => t.isDouble).map(t => t.v1), -1);
+
+                if (pHigh === -1 && bHigh === -1) {
+                    let pMax = Math.max(...playerHand.map(t => t.v1 + t.v2));
+                    let bMax = Math.max(...botHand.map(t => t.v1 + t.v2));
+                    turn = (pMax >= bMax) ? 0 : 1;
+                } else if (pHigh >= bHigh) {
+                    turn = 0;
+                    startingTileForce = playerHand.find(t => t.isDouble && t.v1 === pHigh);
+                } else {
+                    turn = 1;
+                    startingTileForce = botHand.find(t => t.isDouble && t.v1 === bHigh);
+                }
+            } else {
+                turn = roundWinner;
+            }
+
+            elPlayerHand.innerHTML = '';
+            elBotHandCount.innerHTML = '';
+            elBankCount.innerText = `بانک: 0`;
+
+            runShuffleAndDealAnimation(() => {
+                if (startingTileForce) {
+                    if (turn === 0) setTimeout(() => showToast(`🎲 بازی شروع شد! باید جفت ${startingTileForce.v1} را بازی کنید`), 200);
+                    else setTimeout(() => showToast(`🤖 ربات با جفت ${startingTileForce.v1} بازی را شروع می‌کند`), 200);
+                } else {
+                    if (turn === 0) setTimeout(() => showToast("🎲 دست جدید! شروع با شماست"), 200);
+                    else setTimeout(() => showToast("🤖 دست جدید! شروع با ربات است"), 200);
+                }
+
+                updateUI();
+                if (turn === 1) setTimeout(botPlay, 1200);
+            });
+        }
+
+        function runShuffleAndDealAnimation(onComplete) {
+            elAnimLayer.innerHTML = '';
+            elAnimLayer.style.display = 'block';
+
+            const totalTiles = 28;
+            const cW = elAnimLayer.clientWidth || 450;
+            const cH = elAnimLayer.clientHeight || 700;
+            const centerX = cW / 2 - 16;
+            const centerY = cH / 2 - 32;
+
+            let tilesData = [];
+
+            for (let i = 0; i < totalTiles; i++) {
+                let el = document.createElement('div');
+                el.className = 'domino back';
+                el.style.position = 'absolute';
+                el.style.left = `${centerX}px`;
+                el.style.top = `${centerY}px`;
+                el.style.zIndex = 100 + i;
+                el.style.transform = `translate(${(Math.random() - 0.5) * 30}px, ${(Math.random() - 0.5) * 30}px) rotate(${(Math.random() - 0.5) * 40}deg)`;
+                elAnimLayer.appendChild(el);
+                tilesData.push(el);
+            }
+
+            let shuffleCount = 0;
+            let shuffleInterval = setInterval(() => {
+                tilesData.forEach(el => {
+                    let rx = (Math.random() - 0.5) * 120;
+                    let ry = (Math.random() - 0.5) * 120;
+                    let rr = (Math.random() - 0.5) * 360;
+                    el.style.transition = 'transform 0.15s ease-in-out';
+                    el.style.transform = `translate(${rx}px, ${ry}px) rotate(${rr}deg)`;
+                });
+                playDominoSound();
+                shuffleCount++;
+                if (shuffleCount >= 6) {
+                    clearInterval(shuffleInterval);
+                    setTimeout(dealPhase, 300);
+                }
+            }, 180);
+
+            function dealPhase() {
+                const pRect = elPlayerHand.getBoundingClientRect();
+                const bRect = elBotHandCount.getBoundingClientRect();
+                const bankRect = elBankCount.getBoundingClientRect();
+                const cRect = elAnimLayer.getBoundingClientRect();
+
+                let targetPlayerY = pRect.top - cRect.top + 20;
+                let targetBotY = bRect.top - cRect.top + 15;
+                let targetBankX = bankRect.left - cRect.left + 25;
+                let targetBankY = bankRect.top - cRect.top + 12;
+
+                tilesData.forEach((el, index) => {
+                    el.style.transition = 'all 0.7s cubic-bezier(0.19, 1, 0.22, 1)';
+                    el.style.transitionDelay = `${index * 0.04}s`;
+
+                    if (index < 7) {
+                        let tx = (cW / 2 - 120) + (index * 36) - centerX;
+                        let ty = targetPlayerY - centerY;
+                        el.style.transform = `translate(${tx}px, ${ty}px) rotate(0deg) scale(0.95)`;
+                    } else if (index < 14) {
+                        let botIdx = index - 7;
+                        let tx = (cW / 2 - 90) + (botIdx * 26) - centerX;
+                        let ty = targetBotY - centerY;
+                        el.style.transform = `translate(${tx}px, ${ty}px) rotate(0deg) scale(0.65)`;
+                    } else {
+                        let tx = targetBankX - centerX;
+                        let ty = targetBankY - centerY;
+                        el.style.transform = `translate(${tx}px, ${ty}px) rotate(-30deg) scale(0.1)`;
+                        el.style.opacity = '0';
+                    }
+                });
+
+                setTimeout(() => {
+                    elAnimLayer.style.display = 'none';
+                    elAnimLayer.innerHTML = '';
+                    onComplete();
+                }, 700 + (totalTiles * 40) + 100);
+            }
+        }
+
+        function getTileHTML(v1, v2, isBack = false, extraClass = '') {
+            if (isBack) return `<div class="domino back ${extraClass}"></div>`;
+            const dots = () => Array(9).fill(0).map(() => `<div class="dot"></div>`).join('');
+            return `
+            <div class="domino ${extraClass}" data-v1="${v1}" data-v2="${v2}">
+                <div class="half" data-val="${v1}">${dots()}</div>
+                <div class="divider"></div>
+                <div class="half" data-val="${v2}">${dots()}</div>
+            </div>`;
+        }
+
+        function showToast(msg) {
+            let toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.innerText = msg;
+            document.getElementById('game-container').appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        function updateUI() {
+            elPlayerHand.innerHTML = '';
+            playerHand.forEach((tile, index) => {
+                const playableEnds = getPlayableEnds(tile);
+                let isPlayable = false;
+
+                // قفل شدن کامل وضعیت بازی در صورتی که دست به پایان رسیده باشد
+                if (turn === 0 && !gameOver) {
+                    if (board.length === 0) {
+                        isPlayable = startingTileForce ? (tile.id === startingTileForce.id) : true;
+                    } else {
+                        isPlayable = (playableEnds.length > 0);
+                    }
+                }
+
+                let dom = document.createElement('div');
+                dom.innerHTML = getTileHTML(tile.v1, tile.v2, false, isPlayable ? 'playable' : '');
+                let tileEl = dom.firstElementChild;
+                if (selectedHandTile && selectedHandTile.id === tile.id) tileEl.classList.add('selected');
+
+                if (isPlayable && !gameOver) {
+                    tileEl.onclick = () => selectTile(tile, index);
+                } else {
+                    tileEl.style.opacity = '0.4';
+                    tileEl.style.cursor = 'not-allowed';
+                    tileEl.onclick = null;
+                }
+                elPlayerHand.appendChild(tileEl);
+            });
+            elBotHandCount.innerHTML = botHand.map(() => `<div class="mini-back"></div>`).join('');
+            elBankCount.innerText = `بانک: ${boneyard.length}`;
+            elPlayerScore.innerText = playerScore; elBotScore.innerText = botScore;
+            checkGameState();
+        }
+
+        function getPlacementMath(endObj, tile, isV1Match, endName) {
+            let tempEnd = { ...endObj };
+            updateDirection(tempEnd, endName);
+
+            let old_dir = endObj.dir;
+            let new_dir = tempEnd.dir;
+            let isTurn = (old_dir !== new_dir);
+
+            let nx = new_dir === 1 ? 1 : new_dir === 3 ? -1 : 0;
+            let ny = new_dir === 2 ? 1 : new_dir === 0 ? -1 : 0;
+
+            let cx, cy, newX, newY, rot;
+
+            if (isTurn) {
+                if (old_dir === 1 && new_dir === 0) {
+                    if (tile.isDouble) {
+                        rot = 90; cx = endObj.x + 32; cy = endObj.y; newX = cx; newY = cy - 16;
+                    } else {
+                        rot = isV1Match ? 180 : 0; cx = endObj.x + 16; cy = endObj.y - 16; newX = cx; newY = cy - 32;
+                    }
+                } else if (old_dir === 0 && new_dir === 3) {
+                    if (tile.isDouble) {
+                        rot = 0; cx = endObj.x; cy = endObj.y - 32; newX = cx - 16; newY = cy;
+                    } else {
+                        rot = isV1Match ? 90 : -90; cx = endObj.x - 16; cy = endObj.y - 16; newX = cx - 32; newY = cy;
+                    }
+                } else if (old_dir === 3 && new_dir === 0) {
+                    if (tile.isDouble) {
+                        rot = 90; cx = endObj.x - 32; cy = endObj.y; newX = cx; newY = cy - 16;
+                    } else {
+                        rot = isV1Match ? 180 : 0; cx = endObj.x - 16; cy = endObj.y - 16; newX = cx; newY = cy - 32;
+                    }
+                } else if (old_dir === 3 && new_dir === 2) {
+                    if (tile.isDouble) {
+                        rot = 90; cx = endObj.x - 32; cy = endObj.y; newX = cx; newY = cy + 16;
+                    } else {
+                        rot = isV1Match ? 0 : 180; cx = endObj.x - 16; cy = endObj.y + 16; newX = cx - 32; newY = cy;
+                    }
+                } else if (old_dir === 2 && new_dir === 1) {
+                    if (tile.isDouble) {
+                        rot = 0; cx = endObj.x; cy = endObj.y + 32; newX = cx + 16; newY = cy;
+                    } else {
+                        rot = isV1Match ? -90 : 90; cx = endObj.x + 16; cy = endObj.y + 16; newX = cx + 32; newY = cy;
+                    }
+                } else if (old_dir === 1 && new_dir === 2) {
+                    if (tile.isDouble) {
+                        rot = 90; cx = endObj.x + 32; cy = endObj.y; newX = cx; newY = cy + 16;
+                    } else {
+                        rot = isV1Match ? 0 : 180; cx = endObj.x - 16; cy = endObj.y + 16; newX = cx + 32; newY = cy;
+                    }
+                } else if (old_dir === 0 && new_dir === 1) {
+                    if (tile.isDouble) {
+                        rot = 0; cx = endObj.x; cy = endObj.y - 32; newX = cx + 16; newY = cy;
+                    } else {
+                        rot = isV1Match ? -90 : 90; cx = endObj.x + 16; cy = endObj.y - 16; newX = cx + 32; newY = cy;
+                    }
+                } else if (old_dir === 2 && new_dir === 3) {
+                    if (tile.isDouble) {
+                        rot = 0; cx = endObj.x; cy = endObj.y + 32; newX = cx - 16; newY = cy;
+                    } else {
+                        rot = isV1Match ? 90 : -90; cx = endObj.x - 16; cy = endObj.y + 16; newX = cx - 32; newY = cy;
+                    }
+                } else {
+                    if (tile.isDouble) {
+                        cx = tempEnd.x + nx * 16; cy = tempEnd.y + ny * 16; newX = cx + nx * 16; newY = cy + ny * 16; rot = (nx !== 0) ? 0 : 90;
+                    } else {
+                        cx = tempEnd.x + nx * 32; cy = tempEnd.y + ny * 32; newX = cx + nx * 32; newY = cy + ny * 32;
+                        if (nx === 1) rot = isV1Match ? -90 : 90;
+                        else if (nx === -1) rot = isV1Match ? 90 : -90;
+                        else if (ny === 1) rot = isV1Match ? 0 : 180;
+                        else rot = isV1Match ? 180 : 0;
+                    }
+                }
+            } else {
+                if (tile.isDouble) {
+                    cx = tempEnd.x + nx * 16; cy = tempEnd.y + ny * 16; newX = cx + nx * 16; newY = cy + ny * 16; rot = (nx !== 0) ? 0 : 90;
+                } else {
+                    cx = tempEnd.x + nx * 32; cy = tempEnd.y + ny * 32; newX = cx + nx * 32; newY = cy + ny * 32;
+                    if (nx === 1) rot = isV1Match ? -90 : 90;
+                    else if (nx === -1) rot = isV1Match ? 90 : -90;
+                    else if (ny === 1) rot = isV1Match ? 0 : 180;
+                    else rot = isV1Match ? 180 : 0;
+                }
+            }
+
+            let safety = 0;
+            while (isPositionOccupied(cx, cy) && safety < 6) {
+                cx += nx * EXTRA_STEP; cy += ny * EXTRA_STEP; newX += nx * EXTRA_STEP; newY += ny * EXTRA_STEP; safety++;
+            }
+            return { cx, cy, newX, newY, rot, finalEnd: tempEnd };
+        }
+
+        function placeTile(tile, endName, precomputedMath = null) {
+            if (gameOver) return;
+            let tHtml = document.createElement('div');
+            tHtml.classList.add('board-tile');
+            tHtml.innerHTML = getTileHTML(tile.v1, tile.v2);
+            let cx = 0, cy = 0;
+            if (board.length === 0) {
+                cx = 0; cy = 0;
+                let rot = tile.isDouble ? 0 : -90;
+                tHtml.style.transform = `translate(0px, 0px) rotate(${rot}deg)`;
+                if (tile.isDouble) {
+                    ends.A = { val: tile.v1, x: 16, y: 0, dir: 1 }; ends.B = { val: tile.v2, x: -16, y: 0, dir: 3 };
+                } else {
+                    ends.A = { val: tile.v2, x: 32, y: 0, dir: 1 }; ends.B = { val: tile.v1, x: -32, y: 0, dir: 3 };
+                }
+                addOccupied(cx, cy);
+            } else {
+                let end = ends[endName];
+                let isV1Match = (tile.v1 === end.val);
+                let freeVal = isV1Match ? tile.v2 : tile.v1;
+                let math = precomputedMath || getPlacementMath(end, tile, isV1Match, endName);
+                cx = math.cx; cy = math.cy;
+                tHtml.style.transform = `translate(${cx}px, ${cy}px) rotate(${math.rot}deg)`;
+                ends[endName] = { val: freeVal, x: math.newX, y: math.newY, dir: math.finalEnd.dir };
+                addOccupied(cx, cy);
+            }
+            elBoardPan.appendChild(tHtml);
+            board.push(tile);
+            updateCamera(cx, cy);
+            playDominoSound();
+        }
+
+        function updateCamera(cx, cy) {
+            if (isNaN(cx)) cx = 0; if (isNaN(cy)) cy = 0;
+            minX = Math.min(minX, cx - 80); maxX = Math.max(maxX, cx + 80);
+            minY = Math.min(minY, cy - 80); maxY = Math.max(maxY, cy + 80);
+
+            let pX = -(minX + maxX) / 2; let pY = -(minY + maxY) / 2;
+            let bW = maxX - minX + 160, bH = maxY - minY + 160;
+            let cW = boardArea.clientWidth || 350, cH = boardArea.clientHeight || 400;
+
+            let scale = 1;
+            if (bW > cW * 0.85 || bH > cH * 0.85) {
+                scale = Math.min((cW * 0.85) / bW, (cH * 0.85) / bH);
+            }
+            if (scale < 0.35) scale = 0.35;
+            elBoardPan.style.transform = `scale(${scale}) translate(${pX}px, ${pY}px)`;
+        }
+
+        function getPlayableEnds(tile) {
+            if (board.length === 0) return ['A'];
+            let valid = [];
+            if (tile.v1 === ends.A.val || tile.v2 === ends.A.val) valid.push('A');
+            if (tile.v1 === ends.B.val || tile.v2 === ends.B.val) valid.push('B');
+            return valid;
+        }
+
+        function selectTile(tile, index) {
+            if (turn !== 0 || gameOver) return;
+            selectedHandTile = { ...tile, index };
+            updateUI();
+            document.querySelectorAll('.placement-target').forEach(e => e.remove());
+            let validEnds = getPlayableEnds(tile);
+            if (board.length === 0) {
+                showTarget('A', null, 0, 0);
+            } else {
+                validEnds.forEach(endName => {
+                    let end = ends[endName];
+                    let isV1Match = (tile.v1 === end.val);
+                    let math = getPlacementMath(end, tile, isV1Match, endName);
+                    showTarget(endName, math, math.cx, math.cy);
+                });
+            }
+        }
+
+        function showTarget(endName, math, x, y) {
+            if (gameOver) return;
+            let t = document.createElement('div');
+            t.className = 'placement-target';
+            t.style.left = `${x}px`; t.style.top = `${y}px`;
+            t.mathData = math; t.endName = endName;
+            t.onclick = () => {
+                if (gameOver) { t.remove(); return; }
+                document.querySelectorAll('.placement-target').forEach(e => e.remove());
+                placeTile(selectedHandTile, t.endName, t.mathData);
+                playerHand.splice(selectedHandTile.index, 1);
+                selectedHandTile = null; startingTileForce = null;
+                turn = 1; updateUI();
+                if (!gameOver) setTimeout(botPlay, 1000);
+            };
+            elBoardPan.appendChild(t);
+        }
+
+        function botPlay() {
+            if (gameOver) return;
+            let played = false;
+            if (board.length === 0) {
+                let idx = -1;
+                if (startingTileForce) idx = botHand.findIndex(t => t.id === startingTileForce.id);
+                if (idx === -1) idx = botHand.findIndex(t => t.isDouble);
+                if (idx === -1) idx = 0;
+                placeTile(botHand[idx], 'A'); botHand.splice(idx, 1);
+                startingTileForce = null; played = true;
+            } else {
+                for (let i = 0; i < botHand.length; i++) {
+                    let valid = getPlayableEnds(botHand[i]);
+                    if (valid.length > 0) {
+                        placeTile(botHand[i], valid[0]); botHand.splice(i, 1);
+                        played = true; break;
+                    }
+                }
+            }
+            if (played) {
+                turn = 0; updateUI(); checkPlayerMoves();
+            } else {
+                if (boneyard.length > 0) {
+                    showToast("🤖 ربات مهره از بانک کشید");
+                    botHand.push(boneyard.pop()); updateUI(); setTimeout(botPlay, 800);
+                } else {
+                    showToast("🤖 ربات هیچ حرکتی ندارد، نوبت شماست");
+                    turn = 0; updateUI(); checkPlayerMoves();
+                }
+            }
+        }
+
+        function checkPlayerMoves() {
+            if (turn !== 0 || gameOver) return;
+            let hasMove = playerHand.some(t => getPlayableEnds(t).length > 0);
+            if (!hasMove && boneyard.length > 0) {
+                showToast("⚠️ شما مهره قابل بازی ندارید، از بانک بکشید"); openBoneyard();
+            } else if (!hasMove && boneyard.length === 0) {
+                showToast("⚠️ حرکتی ندارید، نوبت به ربات می‌رسد");
+                turn = 1; setTimeout(botPlay, 1000); checkBlock();
+            }
+        }
+
+        function openBoneyard() {
+            if (gameOver) return;
+            elMsg.innerText = "مهره مناسب ندارید! از بانک بکشید:";
+            elBoneyard.innerHTML = '';
+            boneyard.forEach((t, i) => {
+                let dom = document.createElement('div');
+                dom.innerHTML = getTileHTML(t.v1, t.v2, true, 'playable');
+                let el = dom.firstElementChild;
+                el.onclick = () => drawTile(i);
+                elBoneyard.appendChild(el);
+            });
+            elBtn.style.display = 'none'; elModal.style.display = 'flex';
+        }
+
+        function drawTile(index) {
+            if (gameOver) return;
+            let drawn = boneyard.splice(index, 1)[0];
+            playerHand.push(drawn);
+            if (getPlayableEnds(drawn).length > 0) {
+                elModal.style.display = 'none'; showToast("✅ مهره جدید قابل بازی است"); updateUI();
+            } else {
+                if (boneyard.length > 0) openBoneyard();
+                else { elModal.style.display = 'none'; showToast("⚠️ بانک خالی، نوبت عوض شد"); turn = 1; updateUI(); setTimeout(botPlay, 1000); }
+            }
+        }
+
+        function sumHand(hand) { return hand.reduce((s, t) => s + t.v1 + t.v2, 0); }
+
+        function checkGameState() {
+            if (gameOver) return;
+            if (playerHand.length === 0) endRound("شما برنده این دست شدید!", sumHand(botHand), 0);
+            else if (botHand.length === 0) endRound("ربات برنده این دست شد!", sumHand(playerHand), 1);
+        }
+
+        function checkBlock() {
+            let pMove = playerHand.some(t => getPlayableEnds(t).length > 0);
+            let bMove = botHand.some(t => getPlayableEnds(t).length > 0);
+            if (!pMove && !bMove && boneyard.length === 0) {
+                let pS = sumHand(playerHand), bS = sumHand(botHand);
+                if (pS < bS) endRound("بازی قفل شد! شما برنده دست شدید.", bS, 0);
+                else if (bS < pS) endRound("بازی قفل شد! ربات برنده دست شد.", pS, 1);
+                else endRound("بازی قفل و مساوی شد!", 0, -1);
+            }
+        }
+
+        function endRound(msg, points, winner) {
+            gameOver = true;
+
+            // پاک کردن دایره‌های راهنمای زرد رنگ روی برد بلافاصله برای جلوگیری از خطا
+            document.querySelectorAll('.placement-target').forEach(e => e.remove());
+
+            // به روز رسانی دست بازیکن برای اعمال سریع ویژگی کدر و غیرقابل بازی شدن
+            updateUI();
+
+            elBotHandCount.innerHTML = botHand.map(t => getTileHTML(t.v1, t.v2, false, '')).join('');
+            elBotHandCount.querySelectorAll('.domino').forEach(d => {
+                d.style.transform = 'scale(0.85)';
+                d.style.cursor = 'default';
+            });
+
+            if (winner === 0) roundWinner = 0;
+            else if (winner === 1) roundWinner = 1;
+            else roundWinner = null;
+
+            setTimeout(() => {
+                const allHandTiles = document.querySelectorAll('.player-area .domino, .bot-area .domino');
+                allHandTiles.forEach(tile => {
+                    tile.style.transition = 'all 0.5s ease-in-out';
+                    tile.style.transform = 'scale(0) translateY(-30px)';
+                    tile.style.opacity = '0';
+                });
+
+                if (points > 0 && winner !== -1) {
+                    const targetBadge = winner === 0 ? elPlayerScore : elBotScore;
+                    let added = 0;
+
+                    let scoreTicker = setInterval(() => {
+                        added++;
+                        if (winner === 0) playerScore++;
+                        else if (winner === 1) botScore++;
+
+                        targetBadge.innerText = winner === 0 ? playerScore : botScore;
+                        targetBadge.style.transform = 'scale(1.3)';
+                        setTimeout(() => targetBadge.style.transform = 'scale(1)', 40);
+
+                        playDominoSound();
+
+                        if (added >= points) {
+                            clearInterval(scoreTicker);
+                            setTimeout(showFinalModal, 600);
+                        }
+                    }, 50);
+                } else {
+                    showFinalModal();
+                }
+            }, 1500);
+
+            function showFinalModal() {
+                elPlayerScore.innerText = playerScore;
+                elBotScore.innerText = botScore;
+
+                elMsg.innerHTML = `${msg}<br><br>امتیاز دریافتی: ${points}`;
+                elBoneyard.innerHTML = ''; elBtn.style.display = 'block'; elBtn.innerText = "دست بعدی";
+
+                if (playerScore >= targetScore) {
+                    elMsg.innerText = `🎉 شما برنده کل بازی شدید! (${targetScore} امتیاز)`;
+                    elBtn.innerText = "بازی مجدد"; round = 0; playerScore = 0; botScore = 0; roundWinner = null;
+                }
+                else if (botScore >= targetScore) {
+                    elMsg.innerText = `💀 ربات برنده کل بازی شد! (${targetScore} امتیاز)`;
+                    elBtn.innerText = "بازی مجدد"; round = 0; playerScore = 0; botScore = 0; roundWinner = null;
+                }
+                elModal.style.display = 'flex';
+
+                elBtn.onclick = () => {
+                    elModal.style.display = 'none';
+                    round++;
+                    initRound();
+                };
+            }
+        }
+
+        document.body.addEventListener('touchstart', function initAudioOnFirstTouch() {
+            initAudio(); document.body.removeEventListener('touchstart', initAudioOnFirstTouch);
+        }, { once: true });
+        document.body.addEventListener('click', function initAudioOnFirstClick() {
+            initAudio(); document.body.removeEventListener('click', initAudioOnFirstClick);
+        }, { once: true });
+
+        initRound();
+    </script>
+</body>
+
+</html>

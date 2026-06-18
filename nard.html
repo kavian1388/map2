@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>تخته‌نرد مینیمال و سه‌بعدی</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+
+    :root {
+      --bg-main: #F5EFE6;
+      --bg-card: #FFFFFF;
+      --accent: #1A51A6;
+      --text-main: #111111;
+      --text-muted: #6B7280;
+      --border-color: #D1D5DB;
+
+      /* پالت رنگی تخته نرد */
+      --board-rim: #2C1E16;
+      --board-inner: #D9B382;
+      --point-dark: #5C3A21;
+      --point-light: #F3E5AB;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Vazirmatn', Tahoma, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      touch-action: manipulation;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ===== منوی بالا ===== */
+    .topMenu {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: calc(16px + env(safe-area-inset-top)) 24px 16px 24px;
+      background: transparent;
+      z-index: 50;
+      position: absolute;
+      /* تغییر به absolute تا فضای اصلی را اشغال نکند */
+      top: 0;
+      left: 0;
+    }
+
+    .leftBox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-card);
+      padding: 8px 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border-color);
+    }
+
+    .turnDot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid #D1D5DB;
+      transition: all 0.3s ease;
+    }
+
+    .turnTextMenu {
+      font-size: 15px;
+      color: var(--text-main);
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    .turnTextMenu b {
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .backBtn {
+      cursor: pointer;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s;
+    }
+
+    .backBtn:active {
+      transform: scale(0.95);
+    }
+
+    .backBtn svg {
+      width: 22px;
+      height: 22px;
+      fill: #374151;
+    }
+
+    #msg {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0;
+      position: fixed;
+      top: calc(80px + env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* ===== چینش کلی و بخش کنترل (دکمه/تاس) بالای تخته ===== */
+    .game-wrapper {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-top: calc(50px + env(safe-area-inset-top));
+    }
+
+    .controls-area {
+      height: 60px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      z-index: 200;
+    }
+
+    #roll-btn {
+      padding: 14px 40px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(26, 81, 166, 0.3);
+      transition: all 0.2s;
+    }
+
+    #roll-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ===== تاس‌ها و انیمیشن پرتاب ===== */
+    #dice-ui {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dice {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      position: relative;
+      display: grid;
+      grid-template-areas: "a b c" "d e f" "g h i";
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      padding: 7px;
+      background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f3f4f6 70%, #d1d5db 100%);
+      border: 1px solid #9ca3af;
+      box-shadow: 0 5px 8px rgba(0, 0, 0, 0.2), inset 0 -3px 6px rgba(0, 0, 0, 0.1), inset 0 3px 6px rgba(255, 255, 255, 1);
+      will-change: transform, filter, opacity;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      align-self: center;
+      justify-self: center;
+    }
+
+    .dice-1 .dot {
+      grid-area: e;
+    }
+
+    .dice-2 .dot:nth-child(1) {
+      grid-area: a;
+    }
+
+    .dice-2 .dot:nth-child(2) {
+      grid-area: i;
+    }
+
+    .dice-3 .dot:nth-child(1) {
+      grid-area: a;
+    }
+
+    .dice-3 .dot:nth-child(2) {
+      grid-area: e;
+    }
+
+    .dice-3 .dot:nth-child(3) {
+      grid-area: i;
+    }
+
+    .dice-4 .dot:nth-child(1) {
+      grid-area: a;
+    }
+
+    .dice-4 .dot:nth-child(2) {
+      grid-area: c;
+    }
+
+    .dice-4 .dot:nth-child(3) {
+      grid-area: g;
+    }
+
+    .dice-4 .dot:nth-child(4) {
+      grid-area: i;
+    }
+
+    .dice-5 .dot:nth-child(1) {
+      grid-area: a;
+    }
+
+    .dice-5 .dot:nth-child(2) {
+      grid-area: c;
+    }
+
+    .dice-5 .dot:nth-child(3) {
+      grid-area: e;
+    }
+
+    .dice-5 .dot:nth-child(4) {
+      grid-area: g;
+    }
+
+    .dice-5 .dot:nth-child(5) {
+      grid-area: i;
+    }
+
+    .dice-6 .dot:nth-child(1) {
+      grid-area: a;
+    }
+
+    .dice-6 .dot:nth-child(2) {
+      grid-area: d;
+    }
+
+    .dice-6 .dot:nth-child(3) {
+      grid-area: g;
+    }
+
+    .dice-6 .dot:nth-child(4) {
+      grid-area: c;
+    }
+
+    .dice-6 .dot:nth-child(5) {
+      grid-area: f;
+    }
+
+    .dice-6 .dot:nth-child(6) {
+      grid-area: i;
+    }
+
+    /* انیمیشن طبیعی‌تر پرتاب تاس */
+    .dice.shake {
+      animation: diceRollAnim 550ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes diceRollAnim {
+      0% {
+        transform: translateY(-50px) rotate(-180deg) scale(0.6);
+        opacity: 0;
+        filter: blur(3px);
+      }
+
+      40% {
+        transform: translateY(15px) rotate(45deg) scale(1.1);
+        opacity: 1;
+        filter: blur(0px);
+      }
+
+      70% {
+        transform: translateY(-5px) rotate(-10deg) scale(0.95);
+      }
+
+      100% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* ===== صفحه بازی و تخته‌نرد لبه‌به‌لبه ===== */
+    .board {
+      width: 100vw;
+      /* لبه به لبه روی موبایل */
+      max-width: 760px;
+      /* محدود شدن عرض در تبلت و دسکتاپ */
+      aspect-ratio: 1.25;
+      border-radius: 0;
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 40px 1fr;
+      overflow: hidden;
+      border: 12px solid var(--board-rim);
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.1), 0 14px 40px rgba(0, 0, 0, 0.25);
+      background: var(--board-inner);
+      background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.1) 100%);
+    }
+
+    @media (max-width: 768px) {
+      .board {
+        border-left-width: 4px;
+        border-right-width: 4px;
+        border-top-width: 10px;
+        border-bottom-width: 10px;
+      }
+    }
+
+    .half {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      position: relative;
+      z-index: 1;
+      height: 100%;
+    }
+
+    .row {
+      display: flex;
+      height: 100%;
+      width: 100%;
+      position: relative;
+    }
+
+    .point {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .point::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 86%;
+      height: 85%;
+      opacity: 0.95;
+    }
+
+    .top .point::before {
+      top: 0;
+      clip-path: polygon(50% 100%, 0 0, 100% 0);
+    }
+
+    .bottom .point::before {
+      bottom: 0;
+      clip-path: polygon(50% 0, 0 100%, 100% 100%);
+    }
+
+    .top .point:nth-child(odd)::before,
+    .bottom .point:nth-child(even)::before {
+      background: linear-gradient(to bottom, var(--point-dark), #412815);
+    }
+
+    .top .point:nth-child(even)::before,
+    .bottom .point:nth-child(odd)::before {
+      background: linear-gradient(to bottom, var(--point-light), #DFCC8A);
+    }
+
+    .bottom .point::before {
+      background: linear-gradient(to top, var(--point-dark), #412815) !important;
+    }
+
+    .bottom .point:nth-child(even)::before {
+      background: linear-gradient(to top, var(--point-dark), #412815) !important;
+    }
+
+    .bottom .point:nth-child(odd)::before {
+      background: linear-gradient(to top, var(--point-light), #DFCC8A) !important;
+    }
+
+    /* هایلایت نقطه‌های مجاز حرکت براساس رنگ اختصاصی تاس */
+    .point.highlight::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      /* --highlight-color از طریق جاوااسکریپت تزریق می‌شود */
+      box-shadow: inset 0 0 0 4px var(--highlight-color), inset 0 0 35px var(--highlight-color);
+      pointer-events: none;
+      z-index: 20;
+      opacity: 0.9;
+    }
+
+    /* ===== استایل دقیق مهره‌ها ===== */
+    .piece {
+      width: 82%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+      will-change: transform, top, bottom;
+    }
+
+    .piece.white {
+      background: radial-gradient(circle at 35% 35%, #ffffff 0%, #e8e8e8 60%, #b0b0b0 100%);
+      border: 1px solid #999;
+    }
+
+    .piece.black {
+      background: radial-gradient(circle at 35% 35%, #4a4a4a 0%, #1a1a1a 60%, #000000 100%);
+      border: 1px solid #000;
+    }
+
+    .piece::after {
+      content: '';
+      position: absolute;
+      width: 52%;
+      height: 52%;
+      border-radius: 50%;
+      border: 1.5px solid rgba(128, 128, 128, 0.25);
+    }
+
+    .piece.black::after {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .point .piece.selected {
+      transform: translateX(-50%) scale(1.15);
+      z-index: 50;
+      box-shadow: 0 0 0 3px rgba(26, 81, 166, 0.6), 0 10px 22px rgba(0, 0, 0, 0.4);
+      border-color: var(--accent);
+    }
+
+    /* ===== بار (وسط تخته) ===== */
+    .bar {
+      background: var(--board-rim);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 10;
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.7);
+      padding: 6px 0;
+    }
+
+    .bar-text {
+      color: #fff;
+      font-size: 11px;
+      opacity: 0.8;
+      font-weight: 500;
+    }
+
+    .bar-pieces {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      flex: 1;
+      gap: 3px;
+    }
+
+    .bar-pieces .piece {
+      position: relative;
+      left: auto;
+      transform: none;
+      width: min(6.5vw, 36px);
+      height: min(6.5vw, 36px);
+      aspect-ratio: auto;
+    }
+
+    .bar-pieces .piece.selected {
+      transform: scale(1.15);
+      z-index: 50;
+      box-shadow: 0 0 0 3px rgba(26, 81, 166, 0.6), 0 10px 22px rgba(0, 0, 0, 0.4);
+      border-color: var(--accent);
+    }
+
+    .bar-center {
+      width: 100%;
+      height: 44px;
+      background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 200" preserveAspectRatio="none"%3E%3Cpath d="M50,0 L50,200 M0,100 L100,100 M25,50 L75,150 M25,150 L75,50" stroke="%23D9B382" stroke-width="1" stroke-opacity="0.5"/%3E%3Cpath d="M50,50 L50,150 L15,100 Z M50,50 L50,150 L85,100 Z M50,50 L50,150 L30,60 Z M50,50 L50,150 L70,60 Z M50,50 L50,150 L30,140 Z M50,50 L50,150 L70,140 Z" fill="%23D9B382" fill-opacity="0.8"/%3E%3C/svg%3E');
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      margin: 10px 0;
+    }
+
+    .exit-piece-btn {
+      position: absolute;
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+      padding: 14px 20px;
+      border: none;
+      border-radius: 12px;
+      background: var(--accent);
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      z-index: 60;
+      box-shadow: 0 4px 12px rgba(26, 81, 166, 0.3);
+      transition: all 0.2s;
+    }
+
+    .exit-piece-btn:active {
+      transform: translateY(-50%) scale(0.96);
+    }
+
+    /* ===== مودال‌ها ===== */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.25);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 99999;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      width: 100%;
+      max-width: 400px;
+      border-radius: 24px;
+      box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.15);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modalHead {
+      font-size: 20px;
+      font-weight: 800;
+      text-align: center;
+      color: var(--text-main);
+    }
+
+    .text {
+      font-size: 15px;
+      color: var(--text-muted);
+      text-align: center;
+      font-weight: 500;
+      margin: 8px 0 12px;
+    }
+
+    .btnRow {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--border-color);
+      padding-top: 16px;
+      gap: 10px;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(26, 81, 166, 0.2);
+      transition: all 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn.secondary {
+      background: transparent;
+      color: #4B5563;
+      box-shadow: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topMenu">
+    <div class="leftBox">
+      <span class="turnDot" id="turnDot"></span>
+      <div class="turnTextMenu" id="turnTextMenu">—</div>
+    </div>
+    <div class="rightBox">
+      <div class="backBtn" id="backBtn" aria-label="بازگشت">
+        <svg viewBox="0 0 24 24">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div id="msg"></div>
+
+  <div class="game-wrapper">
+
+    <div class="controls-area">
+      <button id="roll-btn" onclick="rollDice()">پرتاب تاس</button>
+      <div id="dice-ui"></div>
+    </div>
+
+    <div class="board" id="main-board">
+      <button id="exit-piece-btn" class="exit-piece-btn" style="display:none;">خروج مهره</button>
+
+      <div class="half">
+        <div class="row top" id="z-1-6"></div>
+        <div class="row bottom" id="z-24-19"></div>
+      </div>
+
+      <div class="bar" id="bar-ui"></div>
+
+      <div class="half">
+        <div class="row top" id="z-7-12"></div>
+        <div class="row bottom" id="z-18-13"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="customModal" class="overlay">
+    <div class="modal">
+      <div class="modalHead">پیام</div>
+      <div class="text" id="modalText"></div>
+      <div class="btnRow">
+        <button class="btn" onclick="closeModal()">باشه</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="endGameModal" class="overlay">
+    <div class="modal">
+      <div class="modalHead">پایان بازی</div>
+      <div class="text" id="endGameText"></div>
+      <div class="btnRow">
+        <button class="btn" onclick="location.reload()">بازی دوباره</button>
+        <button class="btn secondary" onclick="window.location.href = 'index.html'">خروج از بازی</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="exitModal" class="overlay" aria-hidden="true">
+    <div class="modal">
+      <div class="modalHead">خروج</div>
+      <div class="text">می‌خواهید از بازی خارج شوید؟</div>
+      <div class="btnRow">
+        <button class="btn" onclick="exitGame()">بله، خارج می‌شوم</button>
+        <button class="btn secondary" onclick="closeExitModal()">نه، ادامه می‌دهم</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===================== رنگ‌های اختصاصی اعداد تاس ===================== */
+    const diceColorsMap = {
+      1: '#E91E63', // صورتی
+      2: '#2196F3', // آبی
+      3: '#4CAF50', // سبز
+      4: '#FF9800', // نارنجی
+      5: '#9C27B0', // بنفش
+      6: '#F44336'  // قرمز
+    };
+
+    /* ===================== صداها ===================== */
+    let audioCtx = null, masterGain = null;
+    function ensureAudio() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        audioCtx = new AC();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.55;
+        masterGain.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => { });
+    }
+    function makeNoiseBuffer(duration = 0.12) {
+      const sr = audioCtx.sampleRate;
+      const len = Math.max(1, Math.floor(sr * duration));
+      const buf = audioCtx.createBuffer(1, len, sr);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * 0.85;
+      return buf;
+    }
+    function envGain(g, t0, a = 0.005, d = 0.12, peak = 0.22) {
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(peak, t0 + a);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + a + d);
+    }
+    function playNoiseHit({ duration = 0.10, cutoff = 1500, peak = 0.20 }) {
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+      const src = audioCtx.createBufferSource();
+      src.buffer = makeNoiseBuffer(duration);
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(cutoff, t0);
+      const g = audioCtx.createGain();
+      envGain(g, t0, 0.003, duration, peak);
+      src.connect(filter); filter.connect(g); g.connect(masterGain);
+      src.start(t0); src.stop(t0 + duration + 0.05);
+    }
+    function playTone({ freq = 140, duration = 0.14, type = 'sine', peak = 0.10, slideTo = null }) {
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+      const o = audioCtx.createOscillator();
+      o.type = type; o.frequency.setValueAtTime(freq, t0);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + duration);
+      const g = audioCtx.createGain();
+      envGain(g, t0, 0.004, duration, peak);
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.setValueAtTime(1800, t0);
+      o.connect(filter); filter.connect(g); g.connect(masterGain);
+      o.start(t0); o.stop(t0 + duration + 0.05);
+    }
+    function playSound(name) {
+      ensureAudio();
+      if (!audioCtx) return;
+      if (name === 'button') { playNoiseHit({ duration: 0.06, cutoff: 2200, peak: 0.10 }); playTone({ freq: 180, duration: 0.06, type: 'triangle', peak: 0.05 }); }
+      if (name === 'select') { playNoiseHit({ duration: 0.07, cutoff: 1700, peak: 0.12 }); playTone({ freq: 220, duration: 0.08, type: 'sine', peak: 0.05, slideTo: 200 }); }
+      if (name === 'move') { playNoiseHit({ duration: 0.08, cutoff: 1200, peak: 0.12 }); playTone({ freq: 160, duration: 0.10, type: 'sine', peak: 0.06, slideTo: 140 }); }
+      if (name === 'capture') { playNoiseHit({ duration: 0.11, cutoff: 900, peak: 0.20 }); playTone({ freq: 130, duration: 0.14, type: 'sawtooth', peak: 0.07, slideTo: 95 }); }
+      if (name === 'important') { playNoiseHit({ duration: 0.09, cutoff: 1500, peak: 0.16 }); playTone({ freq: 200, duration: 0.12, type: 'triangle', peak: 0.06 }); }
+      if (name === 'win') { playTone({ freq: 196, duration: 0.14, type: 'triangle', peak: 0.08 }); setTimeout(() => playTone({ freq: 247, duration: 0.14, type: 'triangle', peak: 0.08 }), 140); setTimeout(() => playTone({ freq: 294, duration: 0.18, type: 'triangle', peak: 0.09 }), 280); }
+      if (name === 'lose') { playTone({ freq: 220, duration: 0.16, type: 'sawtooth', peak: 0.07, slideTo: 165 }); setTimeout(() => playTone({ freq: 196, duration: 0.18, type: 'sawtooth', peak: 0.07, slideTo: 140 }), 170); }
+      if (name === 'dieRoll') { playNoiseHit({ duration: 0.15, cutoff: 1100, peak: 0.14 }); }
+    }
+    window.addEventListener('pointerdown', ensureAudio, { once: true });
+
+    /* ===================== مودال‌ها ===================== */
+    function closeModal() { document.getElementById('customModal').style.display = 'none'; }
+    function openModal(text) { document.getElementById('modalText').innerText = text; document.getElementById('customModal').style.display = 'flex'; }
+    const exitModal = document.getElementById('exitModal');
+    const backBtn = document.getElementById('backBtn');
+    function openExitModal() { exitModal.classList.add('show'); exitModal.setAttribute('aria-hidden', 'false'); }
+    function closeExitModal() { exitModal.classList.remove('show'); exitModal.setAttribute('aria-hidden', 'true'); }
+    function exitGame() { window.location.href = 'index.html'; }
+    backBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); playSound('button'); openExitModal(); });
+    exitModal.addEventListener('click', (e) => { if (e.target === exitModal) closeExitModal(); });
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && exitModal.classList.contains('show')) closeExitModal(); });
+
+    /* ===================== منطق بازی ===================== */
+    let state = {
+      1: { n: 2, c: 'white' }, 12: { n: 5, c: 'white' }, 17: { n: 3, c: 'white' }, 19: { n: 5, c: 'white' },
+      24: { n: 2, c: 'black' }, 13: { n: 5, c: 'black' }, 8: { n: 3, c: 'black' }, 6: { n: 5, c: 'black' }
+    };
+    let bar = { white: 0, black: 0 }, off = { white: 0, black: 0 };
+    let dice = [], turn = 'white', selected = null;
+    let targets = [];
+    let diceRolled = false, gameMode = null, gameStarted = false, gameOver = false, isAnimatingMove = false;
+    const exitPieceBtn = document.getElementById('exit-piece-btn');
+    const timers = new Set();
+    function later(fn, ms) { const id = setTimeout(() => { timers.delete(id); fn(); }, ms); timers.add(id); return id; }
+    function clearAllTimers() { for (const id of timers) clearTimeout(id); timers.clear(); }
+
+    function updateTurnMenu() {
+      const dot = document.getElementById('turnDot');
+      const txt = document.getElementById('turnTextMenu');
+      dot.style.background = (turn === 'white') ? '#ffffff' : '#111111';
+      txt.innerHTML = `نوبت: <b>${turn === 'white' ? 'سفید' : 'سیاه'}</b>`;
+    }
+
+    /* رندر تخته */
+    function render() {
+      const zones = [
+        { id: 'z-1-6', range: [1, 2, 3, 4, 5, 6] },
+        { id: 'z-7-12', range: [7, 8, 9, 10, 11, 12] },
+        { id: 'z-18-13', range: [18, 17, 16, 15, 14, 13] },
+        { id: 'z-24-19', range: [24, 23, 22, 21, 20, 19] }
+      ];
+
+      zones.forEach(z => {
+        const el = document.getElementById(z.id);
+        el.innerHTML = '';
+        z.range.forEach(num => {
+          const pt = document.createElement('div');
+          pt.className = 'point';
+          pt.dataset.point = num;
+          pt.onclick = () => onPointClick(num);
+
+          const hit = targets.find(x => x.to === num);
+          if (hit) {
+            // اعمال رنگ هایلایت مقصد بر اساس عدد تاس
+            const highlightColor = diceColorsMap[hit.dieValue] || 'var(--accent)';
+            pt.style.setProperty('--highlight-color', highlightColor);
+            pt.classList.add('highlight');
+          }
+
+          if (state[num]) {
+            const count = state[num].n;
+            const isTop = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].includes(num);
+            const baseOffset = 18;
+            const offset = count > 5 ? (85 / count) : baseOffset;
+
+            for (let i = 0; i < count; i++) {
+              const p = document.createElement('div');
+              p.className = `piece ${state[num].c} ${selected === num && i === count - 1 ? 'selected' : ''}`;
+              p.style[isTop ? 'top' : 'bottom'] = (i * offset) + "%";
+              pt.appendChild(p);
+            }
+          }
+          el.appendChild(pt);
+        });
+      });
+
+      const barEl = document.getElementById('bar-ui');
+      barEl.innerHTML = `
+        <div class="bar-text">خارج: ${off.white}</div>
+        <div class="bar-pieces" id="bar-white"></div>
+        <div class="bar-center"></div>
+        <div class="bar-pieces" id="bar-black"></div>
+        <div class="bar-text">خارج: ${off.black}</div>
+      `;
+
+      ['white', 'black'].forEach(c => {
+        const container = document.getElementById(`bar-${c}`);
+        for (let i = 0; i < bar[c]; i++) {
+          const p = document.createElement('div');
+          p.className = `piece ${c} ${selected === 'bar' && turn === c && i === bar[c] - 1 ? 'selected' : ''}`;
+          p.onclick = (e) => {
+            e.stopPropagation();
+            if (isAnimatingMove) return;
+            if (turn !== c) return;
+            if (!diceRolled) return;
+            selected = (selected === 'bar') ? null : 'bar';
+            updateAutoTarget();
+            render();
+            updateUI();
+          };
+          container.appendChild(p);
+        }
+      });
+
+      updateTurnMenu();
+    }
+
+    function initFromURL() {
+      const params = new URLSearchParams(location.search);
+      const mode = (params.get('mode') || '').toLowerCase();
+      gameMode = (mode === 'robot' || mode === 'two') ? mode : 'two';
+      gameStarted = true;
+      turn = 'white'; dice = []; diceRolled = false; selected = null; targets = []; isAnimatingMove = false;
+      clearAllTimers();
+      document.getElementById('roll-btn').style.display = 'block';
+      updateTurnMenu();
+    }
+    document.addEventListener('DOMContentLoaded', () => { initFromURL(); render(); updateUI(); });
+
+    function rollDice() {
+      playSound('button');
+      if (isAnimatingMove || diceRolled) return;
+      let d1 = Math.floor(Math.random() * 6) + 1;
+      let d2 = Math.floor(Math.random() * 6) + 1;
+      dice = (d1 === d2) ? [d1, d1, d1, d1] : [d1, d2];
+      diceRolled = true;
+      document.getElementById('roll-btn').style.display = 'none';
+      playSound('dieRoll');
+      updateUI(true);
+      autoSelectAfterRoll();
+      later(() => {
+        if (!canMoveAny()) {
+          openModal('حرکتی ممکن نیست!');
+          later(() => nextTurn(), 250); return;
+        }
+        if (gameMode === 'robot' && turn === 'black') { later(aiPlay, 450); }
+      }, 120);
+    }
+
+    function onPointClick(num) {
+      if (isAnimatingMove) return; if (!gameStarted || !diceRolled) return; if (gameMode === 'robot' && turn !== 'white') return;
+      const hit = targets.find(x => x.to === num);
+      if (hit) { move(selected, num, hit.dieIndex); return; }
+      if (selected === 'bar') return; if (bar[turn] > 0 && selected !== 'bar') return;
+      if (state[num] && state[num].c === turn) {
+        selected = (selected === num) ? null : num;
+        updateAutoTarget(); render(); updateUI(); playSound('select'); return;
+      }
+      selected = null; targets = []; exitPieceBtn.style.display = 'none'; render(); updateUI();
+    }
+
+    function isLegal(to) { if (to < 1 || to > 24) return false; return !state[to] || state[to].c === turn || state[to].n === 1; }
+    function canBearOff(color) { if (bar[color] > 0) return false; for (let i = 1; i <= 24; i++) { if (state[i] && state[i].c === color) { if (color === 'white' && i < 19) return false; if (color === 'black' && i > 6) return false; } } return true; }
+    function canMoveOff(color, pos, d) { if (color === 'white') { if (pos + d === 25) return true; if (pos + d > 25) { for (let i = 19; i < pos; i++) if (state[i] && state[i].c === 'white') return false; return true; } return false; } else { if (pos - d === 0) return true; if (pos - d < 0) { for (let i = 6; i > pos; i--) if (state[i] && state[i].c === 'black') return false; return true; } return false; } }
+
+    /* ========= انیمیشن FLIP ========= */
+    function getTopPieceElFromPoint(pointNum, color) {
+      const pt = document.querySelector(`.point[data-point="${pointNum}"]`);
+      if (!pt) return null;
+      const pieces = pt.querySelectorAll(`.piece.${color}`);
+      return pieces[pieces.length - 1] || null;
+    }
+
+    function getTopPieceElFromBar(color) {
+      const barContainer = document.getElementById(`bar-${color}`);
+      if (!barContainer) return null;
+      const pieces = barContainer.querySelectorAll(`.piece.${color}`);
+      return pieces[pieces.length - 1] || null;
+    }
+
+    function centerOfRect(r) { return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+
+    function animateElementFLIP(el, fromRect, onDone, easing = 'cubic-bezier(0.165, 0.84, 0.44, 1)') {
+      if (!el || !fromRect) { onDone?.(); return; }
+      const toRect = el.getBoundingClientRect();
+      const a = centerOfRect(fromRect);
+      const b = centerOfRect(toRect);
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      const dist = Math.hypot(dx, dy);
+      const duration = Math.max(220, Math.min(550, dist * 0.7));
+
+      const isBarPiece = !el.parentElement.classList.contains('point');
+      const baseTransform = isBarPiece ? '' : 'translateX(-50%)';
+
+      el.style.willChange = 'transform';
+      el.style.transition = 'none';
+      el.style.transform = `${baseTransform} translate(${dx}px, ${dy}px)`;
+      void el.offsetWidth;
+      playSound('move');
+
+      requestAnimationFrame(() => {
+        el.style.transition = `transform ${duration}ms ${easing}`;
+        el.style.transform = `${baseTransform} translate(0px, 0px)`;
+      });
+
+      let done = false;
+      const cleanup = () => {
+        if (done) return; done = true;
+        el.style.transition = ''; el.style.transform = ''; el.style.willChange = ''; onDone?.();
+      };
+      el.addEventListener('transitionend', cleanup, { once: true });
+      later(cleanup, duration + 90);
+    }
+
+    function animateOffUsingSameElement(originEl, endRect, onDone) {
+      if (!originEl || !endRect) { onDone?.(); return; }
+      const startRect = originEl.getBoundingClientRect();
+      const a = centerOfRect(startRect);
+      const b = centerOfRect(endRect);
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy);
+      const duration = Math.max(200, Math.min(550, dist * 0.75));
+      const parent = originEl.parentElement;
+
+      if (parent) {
+        const placeholder = originEl.cloneNode(true);
+        placeholder.classList.remove('selected'); placeholder.style.pointerEvents = 'none'; placeholder.style.transform = ''; placeholder.style.transition = 'none'; placeholder.style.zIndex = (parseInt(getComputedStyle(originEl).zIndex || '5', 10) - 1) + ''; parent.appendChild(placeholder);
+      }
+      const prev = { position: originEl.style.position, left: originEl.style.left, top: originEl.style.top, bottom: originEl.style.bottom, width: originEl.style.width, height: originEl.style.height, margin: originEl.style.margin, zIndex: originEl.style.zIndex, transition: originEl.style.transition, transform: originEl.style.transform, pointerEvents: originEl.style.pointerEvents, opacity: originEl.style.opacity };
+
+      const isBarPiece = !originEl.parentElement.classList.contains('point');
+      const baseTransform = isBarPiece ? '' : 'translateX(-50%)';
+
+      originEl.style.transition = 'none'; originEl.style.position = 'fixed'; originEl.style.left = startRect.left + 'px'; originEl.style.top = startRect.top + 'px'; originEl.style.bottom = 'auto'; originEl.style.width = startRect.width + 'px'; originEl.style.height = startRect.height + 'px'; originEl.style.margin = '0'; originEl.style.zIndex = '99999'; originEl.style.pointerEvents = 'none'; originEl.style.transform = `${baseTransform} translate(0px,0px)`; originEl.style.opacity = '1';
+      void originEl.offsetWidth; playSound('move');
+
+      requestAnimationFrame(() => {
+        originEl.style.transition = `transform ${duration}ms cubic-bezier(0.165, 0.84, 0.44, 1), opacity ${duration}ms linear`;
+        originEl.style.transform = `${baseTransform} translate(${dx}px, ${dy}px)`; originEl.style.opacity = '0.12';
+      });
+
+      let done = false; const finish = () => { if (done) return; done = true; try { originEl.style.position = prev.position; originEl.style.left = prev.left; originEl.style.top = prev.top; originEl.style.bottom = prev.bottom; originEl.style.width = prev.width; originEl.style.height = prev.height; originEl.style.margin = prev.margin; originEl.style.zIndex = prev.zIndex; originEl.style.transition = prev.transition; originEl.style.transform = prev.transform; originEl.style.pointerEvents = prev.pointerEvents; originEl.style.opacity = prev.opacity; } catch { } onDone?.(); };
+      originEl.addEventListener('transitionend', finish, { once: true }); later(finish, duration + 90);
+    }
+
+    function applyMoveState(from, to, dieIndex) {
+      dice.splice(dieIndex, 1); if (from === 'bar') bar[turn]--; else { state[from].n--; if (state[from].n === 0) delete state[from]; }
+      if (to === 'off') { off[turn]++; playSound('important'); }
+      else {
+        if (state[to] && state[to].c !== turn) { bar[state[to].c]++; playSound('capture'); state[to] = { n: 1, c: turn }; }
+        else if (!state[to]) state[to] = { n: 1, c: turn }; else state[to].n++;
+      }
+      selected = null;
+    }
+
+    function finalizeAfterMove() { render(); updateUI(); if (dice.length === 0 || !canMoveAny()) { later(nextTurn, 650); return; } if (gameMode === 'robot' && turn === 'black') { later(aiPlay, 650); } }
+
+    function move(from, to, dieIndex) {
+      if (isAnimatingMove) return; if (!diceRolled || dieIndex == null) return; isAnimatingMove = true; targets = [];
+      const endRectForOff = (to === 'off') ? exitPieceBtn.getBoundingClientRect() : null; exitPieceBtn.style.display = 'none';
+      const originEl = (from === 'bar') ? getTopPieceElFromBar(turn) : getTopPieceElFromPoint(from, turn);
+      const startRect = originEl ? originEl.getBoundingClientRect() : null;
+
+      if (to === 'off') { animateOffUsingSameElement(originEl, endRectForOff, () => { applyMoveState(from, to, dieIndex); isAnimatingMove = false; finalizeAfterMove(); }); return; }
+
+      applyMoveState(from, to, dieIndex);
+      render(); updateUI();
+
+      requestAnimationFrame(() => {
+        const destEl = getTopPieceElFromPoint(to, turn);
+        animateElementFLIP(destEl, startRect, () => { isAnimatingMove = false; finalizeAfterMove(); });
+      });
+    }
+
+    function aiPlay() {
+      if (isAnimatingMove) return; if (gameMode !== 'robot' || turn !== 'black' || dice.length === 0) return; let moved = false;
+      for (let i = 0; i < dice.length; i++) {
+        const d = dice[i];
+        if (bar.black > 0) {
+          const t = 25 - d;
+          if (isLegal(t)) { move('bar', t, i); moved = true; break; }
+        } else {
+          const pts = Object.keys(state).filter(k => state[k].c === 'black').map(Number).sort((a, b) => b - a);
+          for (let f of pts) {
+            const t = f - d;
+            if (t >= 1 && isLegal(t)) { move(f, t, i); moved = true; break; } if (t < 1 && canBearOff('black') && canMoveOff('black', f, d)) { move(f, 'off', i); moved = true; break; }
+          }
+        }
+        if (moved) break;
+      }
+      if (!moved) { dice = []; nextTurn(); }
+    }
+
+    function canMoveAny() { if (dice.length === 0) return false; return dice.some(d => { if (bar[turn] > 0) { const t = (turn === 'white') ? d : (25 - d); return isLegal(t); } const pts = Object.keys(state).filter(k => state[k].c === turn).map(Number); return pts.some(f => { const t = (turn === 'white') ? (f + d) : (f - d); if (t >= 1 && t <= 24 && isLegal(t)) return true; if (canBearOff(turn)) { if (turn === 'white') return (f + d >= 25) && canMoveOff('white', f, d); return (f - d <= 0) && canMoveOff('black', f, d); } return false; }); }); }
+
+    function nextTurn() { if (gameOver) return; clearAllTimers(); isAnimatingMove = false; turn = (turn === 'white' ? 'black' : 'white'); dice = []; diceRolled = false; selected = null; targets = []; exitPieceBtn.style.display = 'none'; document.getElementById('msg').innerText = ''; if (turn === 'white') { document.getElementById('roll-btn').style.display = 'block'; } else { if (gameMode === 'robot') { document.getElementById('roll-btn').style.display = 'none'; later(rollDice, 550); } else { document.getElementById('roll-btn').style.display = 'block'; } } render(); updateUI(); }
+
+    function updateUI(animateDice = false) {
+      const diceBox = document.getElementById('dice-ui');
+      diceBox.innerHTML = '';
+      dice.forEach((d) => {
+        const dEl = document.createElement('div');
+        dEl.className = `dice dice-${d}`;
+        // تزریق رنگ منحصربفرد هر عدد به نقطه‌ها
+        const dotColor = diceColorsMap[d] || '#222';
+        for (let i = 0; i < d; i++) {
+          const dot = document.createElement('div');
+          dot.className = 'dot';
+          dot.style.backgroundColor = dotColor;
+          dEl.appendChild(dot);
+        }
+        diceBox.appendChild(dEl);
+        if (animateDice) {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              dEl.classList.remove('shake');
+              void dEl.offsetWidth;
+              dEl.classList.add('shake');
+              dEl.addEventListener('animationend', () => dEl.classList.remove('shake'), { once: true });
+            });
+          });
+        }
+      });
+      checkWin(); updateTurnMenu();
+    }
+
+    function checkWin() {
+      if (gameOver) return; if (off.white === 15 || off.black === 15) { gameOver = true; let message = ""; if (off.white === 15) { if (gameMode === 'robot') { let currentCoins = parseInt(localStorage.getItem('userCoins')) || 0; currentCoins += 20; localStorage.setItem('userCoins', currentCoins); let db = getDB(); db.coins = (db.coins || 0) + 20; saveToDB(db); message = "تبریک! ۲۰ سکه جایزه به حسابت اضافه شد!"; playSound('win'); } else { message = "بازیکن سفید برنده شد!"; playSound('win'); } } else { message = (gameMode === 'robot') ? "ربات برنده شد!" : "بازیکن سیاه برنده شد!"; if (gameMode === 'robot') playSound('lose'); else playSound('win'); } later(() => { document.getElementById('endGameText').innerText = message; document.getElementById('endGameModal').style.display = 'flex'; }, 400); }
+    }
+
+    function computeTargetsFor(from) {
+      const out = []; if (!diceRolled || dice.length === 0) return out; for (let i = 0; i < dice.length; i++) { const d = dice[i]; if (from === 'bar') { const t = (turn === 'white') ? d : (25 - d); if (isLegal(t)) out.push({ to: t, dieIndex: i, dieValue: d }); continue; } const t = (turn === 'white') ? (from + d) : (from - d); if (t >= 1 && t <= 24 && isLegal(t)) { out.push({ to: t, dieIndex: i, dieValue: d }); continue; } if (canBearOff(turn)) { if (turn === 'white') { if (from + d >= 25 && canMoveOff('white', from, d)) out.push({ to: 'off', dieIndex: i, dieValue: d }); } else { if (from - d <= 0 && canMoveOff('black', from, d)) out.push({ to: 'off', dieIndex: i, dieValue: d }); } } } return out;
+    }
+
+    function getMovableSources() { const srcs = []; if (bar[turn] > 0) { if (computeTargetsFor('bar').length > 0) srcs.push('bar'); return srcs; } const pts = Object.keys(state).filter(k => state[k].c === turn).map(Number); for (const from of pts) { if (computeTargetsFor(from).length > 0) srcs.push(from); } return srcs; }
+
+    function autoSelectAfterRoll() { if (bar[turn] > 0) { selected = 'bar'; updateAutoTarget(); render(); updateUI(); return; } const movable = getMovableSources(); if (movable.length === 1) { selected = movable[0]; updateAutoTarget(); render(); updateUI(); return; } selected = null; targets = []; exitPieceBtn.style.display = 'none'; render(); updateUI(); }
+
+    function updateAutoTarget() { targets = []; exitPieceBtn.style.display = 'none'; if (!diceRolled || dice.length === 0) return; if (selected == null) return; targets = computeTargetsFor(selected); if (targets.some(x => x.to === 'off')) { exitPieceBtn.style.display = 'block'; } }
+
+    exitPieceBtn.onclick = (e) => { e.stopPropagation(); if (isAnimatingMove) return; if (!diceRolled || selected == null) return; if (gameMode === 'robot' && turn !== 'white') return; const offMove = targets.find(x => x.to === 'off'); if (!offMove) return; move(selected, 'off', offMove.dieIndex); };
+
+    function getDB() { return JSON.parse(localStorage.getItem('game_hub_v4')) || { coins: 0 }; }
+    function saveToDB(db) { localStorage.setItem('game_hub_v4', JSON.stringify(db)); }
+  </script>
+</body>
+
+</html>
